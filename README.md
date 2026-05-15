@@ -10,7 +10,7 @@
 [![Release](https://img.shields.io/github/v/release/LearnPrompt/humanize-ppt?style=flat-square)](https://github.com/LearnPrompt/humanize-ppt/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 
-[在线 Demo](https://learnprompt.github.io/humanize-ppt/) · [English](README.en.md) · [AST 理论](docs/AST-theory.md) · [OPC 工作流](docs/OPC-workflow.md)
+[在线预览](https://learnprompt.github.io/humanize-ppt/) · [English](README.en.md) · [AST 理论](docs/AST-theory.md) · [OPC 工作流](docs/OPC-workflow.md)
 
 </div>
 
@@ -101,13 +101,17 @@ out/
     presenter.html
 ```
 
-## 在线 Demo
+## 在线预览
 
 - 首页：https://learnprompt.github.io/humanize-ppt/
-- AI 工具更新风格探索：https://learnprompt.github.io/humanize-ppt/demo/styles/index.html
-- AI 工具更新演讲模式：https://learnprompt.github.io/humanize-ppt/demo/presenter/index.html
-- Hermes 安装讲解风格探索：https://learnprompt.github.io/humanize-ppt/demo/hermes-install/styles/index.html
-- Hermes 安装讲解演讲模式：https://learnprompt.github.io/humanize-ppt/demo/hermes-install/presenter/index.html
+- Skill 分享 PPT 展示页：https://learnprompt.github.io/humanize-ppt/showcase/skill-share/
+
+风格探索、演讲者模式和其他生成模式还在调试中，公开入口先隐藏。Roadmap：
+
+- 稳定 Humanize PPT 的最小输出链路；
+- 调试多风格展示结果；
+- 补齐演讲者模式的讲稿、翻页和控制体验；
+- 完成后再恢复在线 Demo 入口。
 
 ## 它不是什么
 

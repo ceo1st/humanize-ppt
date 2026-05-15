@@ -1,1 +1,147 @@
-<!doctype html><html lang='zh-CN'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Humanize PPT</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;margin:48px;max-width:980px;line-height:1.7;background:#f8f5ef;color:#151515}h1{font-size:56px;line-height:1.02}a{color:#8b1e1e}.card{padding:24px;background:white;border:1px solid #e5dfd5;border-radius:18px;margin:16px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}</style></head><body><h1>Humanize PPT</h1><p><b>AST-based outline director Skill for human-centered AI presentation workflows.</b></p><p>PPT 不是信息容器，而是观众状态改变器。</p><div class='grid'><div class='card'><h2>AI 工具更新 Demo</h2><ul><li><a href='demo/styles/index.html'>风格探索</a></li><li><a href='demo/presenter/index.html'>演讲者模式</a></li></ul></div><div class='card'><h2>Hermes 安装讲解 Demo</h2><ul><li><a href='demo/hermes-install/styles/index.html'>风格探索</a></li><li><a href='demo/hermes-install/presenter/index.html'>演讲者模式</a></li></ul></div></div><div class='card'><h2>Repo</h2><p><a href='https://github.com/LearnPrompt/humanize-ppt'>GitHub: LearnPrompt/humanize-ppt</a></p></div></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Humanize PPT</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --ink: #181512;
+      --paper: #f7f3eb;
+      --muted: #6b6258;
+      --line: #ded5c8;
+      --accent: #7f2a1d;
+      --card: #fffaf2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.7;
+    }
+    main {
+      width: min(1080px, calc(100vw - 40px));
+      margin: 0 auto;
+      padding: 64px 0 56px;
+    }
+    header {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 48px;
+      align-items: end;
+      min-height: 48vh;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 44px;
+    }
+    .eyebrow {
+      margin: 0 0 18px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(48px, 9vw, 112px);
+      line-height: .95;
+      letter-spacing: 0;
+      font-weight: 800;
+    }
+    .lead {
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: clamp(18px, 2vw, 24px);
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 24px;
+    }
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+    .panel p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: 6px;
+      background: var(--ink);
+      color: var(--paper);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    section {
+      display: grid;
+      grid-template-columns: .7fr 1.3fr;
+      gap: 48px;
+      padding: 42px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    section h2 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.2;
+    }
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+    }
+    li + li { margin-top: 10px; }
+    a { color: var(--accent); }
+    footer {
+      padding-top: 28px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    @media (max-width: 780px) {
+      main { width: min(100vw - 28px, 1080px); padding-top: 36px; }
+      header, section { grid-template-columns: 1fr; gap: 28px; }
+      header { min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">Humanize PPT · Preview</p>
+        <h1>把 AI 从聊天框带进真实工作流</h1>
+        <p class="lead">当前公开页先展示已调好的 Skill 分享 PPT。未稳定的风格探索和演讲者模式先隐藏，等调试完成后再开放。</p>
+      </div>
+      <div class="panel">
+        <h2>Skill 分享 PPT</h2>
+        <p>HTML PPT 发布版，适合现在作为线上展示页面使用。</p>
+        <a class="button" href="showcase/skill-share/">打开展示</a>
+      </div>
+    </header>
+
+    <section id="roadmap">
+      <h2>Roadmap</h2>
+      <ul>
+        <li>整理 Humanize PPT 的最小稳定输出链路。</li>
+        <li>调试风格探索页面，确认多风格结果的阅读与展示质量。</li>
+        <li>调试演讲者模式，补齐讲稿、翻页和演示控制体验。</li>
+        <li>稳定后再恢复在线 Demo 入口。</li>
+      </ul>
+    </section>
+
+    <footer>
+      <a href="https://github.com/LearnPrompt/humanize-ppt">GitHub: LearnPrompt/humanize-ppt</a>
+    </footer>
+  </main>
+</body>
+</html>

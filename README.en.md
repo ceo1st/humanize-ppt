@@ -10,7 +10,7 @@
 [![Release](https://img.shields.io/github/v/release/LearnPrompt/humanize-ppt?style=flat-square)](https://github.com/LearnPrompt/humanize-ppt/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 
-[Live Demo](https://learnprompt.github.io/humanize-ppt/) · [中文](README.md) · [AST Theory](docs/AST-theory.md) · [OPC Workflow](docs/OPC-workflow.md)
+[Live Preview](https://learnprompt.github.io/humanize-ppt/) · [中文](README.md) · [AST Theory](docs/AST-theory.md) · [OPC Workflow](docs/OPC-workflow.md)
 
 </div>
 
@@ -78,13 +78,17 @@ Run the Hermes installation explainer demo:
 python3 scripts/humanize_ppt_v1.py   --source examples/02-hermes-install-guide/source.md   --out .humanize-ppt-runs/hermes-install   --title "把 Hermes 装成一个真正能干活的 Agent"
 ```
 
-## Live demos
+## Live preview
 
 - Home: https://learnprompt.github.io/humanize-ppt/
-- AI tool update style exploration: https://learnprompt.github.io/humanize-ppt/demo/styles/index.html
-- AI tool update presenter mode: https://learnprompt.github.io/humanize-ppt/demo/presenter/index.html
-- Hermes install style exploration: https://learnprompt.github.io/humanize-ppt/demo/hermes-install/styles/index.html
-- Hermes install presenter mode: https://learnprompt.github.io/humanize-ppt/demo/hermes-install/presenter/index.html
+- Skill sharing deck showcase: https://learnprompt.github.io/humanize-ppt/showcase/skill-share/
+
+Style exploration, presenter mode, and other generated demo modes are still being debugged, so their public entries are hidden for now. Roadmap:
+
+- stabilize the minimal Humanize PPT output loop;
+- tune multi-style showcase quality;
+- finish presenter notes, navigation, and control experience;
+- restore live demo entries after the workflows are stable.
 
 ## What it is not
 
