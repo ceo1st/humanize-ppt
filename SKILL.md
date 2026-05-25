@@ -110,17 +110,19 @@ C — Complete / Control
 - `references/beautiful-preview-first-adapter.md` — Durable adapter pattern for connecting `beautiful-html-templates`: version boundary, template selection, real title-slide previews, manifests, QA, and pitfalls.
 - `references/selected-template-full-deck-adapter.md` — Durable adapter pattern for V0.4 selected-template full deck generation: required artifacts, routing, QA, and TDD coverage.
 - `references/presenter-export-adapter.md` — Durable adapter pattern for adding V0.5-style presenter shell and export package after a final deck exists.
-- `docs/v0.2-router-edition.md` — V0.2 Router Edition notes kept for history.
-- `docs/v0.3-preview-first.md` — V0.3 Preview-First implementation notes: real `beautiful-html-templates` preview gallery, template selection, manifests, and version boundary.
-- `docs/v0.4-selected-template-full-deck.md` — V0.4 Selected Template Full Deck notes: `--selected-template`, selected deck output, manifests, QA, and current boundaries.
-- `docs/v0.5-presenter-export-adapter.md` — V0.5 Presenter / Export Adapter notes: `--presenter-adapter`, `--export-adapter`, output artifacts, and boundaries.
+- `docs/versions/v0.2-router-edition.md` — V0.2 Router Edition notes kept for history.
+- `docs/versions/v0.3-preview-first.md` — V0.3 Preview-First implementation notes: real `beautiful-html-templates` preview gallery, template selection, manifests, and version boundary.
+- `docs/versions/v0.4-selected-template-full-deck.md` — V0.4 Selected Template Full Deck notes: `--selected-template`, selected deck output, manifests, QA, and current boundaries.
+- `docs/versions/v0.5-presenter-export-adapter.md` — V0.5 Presenter / Export Adapter notes: `--presenter-adapter`, `--export-adapter`, output artifacts, and boundaries.
 
 ## Local demo
+
+The recommended stable entrypoint is `scripts/humanize_ppt.py`. Versioned scripts remain available for compatibility.
 
 If this repository is installed locally, run V0.5 Presenter / Export Adapter:
 
 ```bash
-python3 scripts/humanize_ppt_v5.py \
+python3 scripts/humanize_ppt.py \
   --source examples/01-ai-tool-update/source.md \
   --out .humanize-ppt-runs/ai-tool-update-v0.5-complete \
   --title "AI 工具更新，不只是功能清单" \
@@ -132,7 +134,7 @@ python3 scripts/humanize_ppt_v5.py \
 Preview-first routing still renders real Beautiful previews:
 
 ```bash
-python3 scripts/humanize_ppt_v3.py \
+python3 scripts/humanize_ppt.py \
   --source examples/01-ai-tool-update/source.md \
   --out .humanize-ppt-runs/ai-tool-update-v0.3-preview \
   --title "AI 工具更新，不只是功能清单" \

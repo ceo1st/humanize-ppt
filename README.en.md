@@ -58,8 +58,9 @@ It includes:
 - `docs/AST-theory.md` — AST theory;
 - `docs/OPC-workflow.md` — Outline / Produce / Complete workflow;
 - `contracts/` — output contract templates;
-- `scripts/humanize_ppt_v5.py` — Presenter / Export Adapter entrypoint;
-- `scripts/humanize_ppt_v4.py` — Selected Template Full Deck wrapper;
+- `scripts/humanize_ppt.py` — recommended stable entrypoint;
+- `scripts/humanize_ppt_v5.py` — Presenter / Export Adapter compatibility entrypoint;
+- `scripts/humanize_ppt_v4.py` — Selected Template Full Deck compatibility wrapper;
 - `scripts/humanize_ppt_v1.py` — deterministic legacy demo runner;
 - `examples/` — safe sample inputs.
 
@@ -69,7 +70,7 @@ It includes:
 git clone https://github.com/LearnPrompt/humanize-ppt.git
 cd humanize-ppt
 
-python3 scripts/humanize_ppt_v5.py \
+python3 scripts/humanize_ppt.py \
   --source examples/01-ai-tool-update/source.md \
   --out .humanize-ppt-runs/ai-tool-update-v0.5-complete \
   --title "AI 工具更新，不只是功能清单" \
@@ -81,11 +82,13 @@ open .humanize-ppt-runs/ai-tool-update-v0.5-complete/outputs/beautiful/selected/
 open .humanize-ppt-runs/ai-tool-update-v0.5-complete/outputs/presenter/index.html
 open .humanize-ppt-runs/ai-tool-update-v0.5-complete/outputs/export/package/index.html
 ```
+Legacy `scripts/humanize_ppt_v1.py` through `scripts/humanize_ppt_v5.py` remain available for compatibility and historical reproduction. New users should start with `scripts/humanize_ppt.py`.
+
 
 Run the Hermes installation explainer demo:
 
 ```bash
-python3 scripts/humanize_ppt_v1.py   --source examples/02-hermes-install-guide/source.md   --out .humanize-ppt-runs/hermes-install   --title "把 Hermes 装成一个真正能干活的 Agent"
+python3 scripts/humanize_ppt.py   --source examples/02-hermes-install-guide/source.md   --out .humanize-ppt-runs/hermes-install   --title "把 Hermes 装成一个真正能干活的 Agent"
 ```
 
 ## Live preview

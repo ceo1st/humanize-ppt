@@ -61,9 +61,10 @@ V0.5 在 **Selected Template Full Deck** 之后补齐 Presenter / Export Adapter
 - `docs/AST-theory.md`：AST 理论；
 - `docs/OPC-workflow.md`：Outline / Produce / Complete 工作流；
 - `contracts/`：输出契约模板与 schema；
-- `scripts/humanize_ppt_v5.py`：V0.5 Presenter / Export Adapter 入口；
-- `scripts/humanize_ppt_v4.py`：V0.4 Selected Template Full Deck 入口；
-- `scripts/humanize_ppt_v3.py`：V0.3 Preview-First 入口；
+- `scripts/humanize_ppt.py`：推荐主入口；
+- `scripts/humanize_ppt_v5.py`：V0.5 Presenter / Export Adapter 兼容入口；
+- `scripts/humanize_ppt_v4.py`：V0.4 Selected Template Full Deck 兼容入口；
+- `scripts/humanize_ppt_v3.py`：V0.3 Preview-First 兼容入口；
 - `scripts/humanize_ppt_v2.py`：V0.2 Router Edition 兼容 Runner；
 - `scripts/humanize_ppt_v1.py`：V0.1 最小 Demo Runner；
 - `examples/`：脱敏测试素材。
@@ -75,7 +76,7 @@ git clone https://github.com/LearnPrompt/humanize-ppt.git
 cd humanize-ppt
 
 # 第一步：先看 3 个风格预览
-python3 scripts/humanize_ppt_v3.py \
+python3 scripts/humanize_ppt.py \
   --source examples/01-ai-tool-update/source.md \
   --out .humanize-ppt-runs/ai-tool-update-v0.3-preview \
   --title "AI 工具更新，不只是功能清单" \
@@ -84,7 +85,7 @@ python3 scripts/humanize_ppt_v3.py \
 open .humanize-ppt-runs/ai-tool-update-v0.3-preview/outputs/beautiful/previews/index.html
 
 # 第二步：选中一个模板后生成完整 deck，并补齐 presenter/export
-python3 scripts/humanize_ppt_v5.py \
+python3 scripts/humanize_ppt.py \
   --source examples/01-ai-tool-update/source.md \
   --out .humanize-ppt-runs/ai-tool-update-v0.5-complete \
   --title "AI 工具更新，不只是功能清单" \
@@ -97,11 +98,13 @@ open .humanize-ppt-runs/ai-tool-update-v0.5-complete/outputs/presenter/index.htm
 open .humanize-ppt-runs/ai-tool-update-v0.5-complete/outputs/export/package/index.html
 open .humanize-ppt-runs/ai-tool-update-v0.5-complete/outputs/qa/qa_report.md
 ```
+旧版 `scripts/humanize_ppt_v1.py` 到 `scripts/humanize_ppt_v5.py` 仍保留用于兼容和历史复现；新用户只需要记住 `scripts/humanize_ppt.py`。
+
 
 也可以显式指定 beautiful-html-templates 仓库路径：
 
 ```bash
-python3 scripts/humanize_ppt_v5.py \
+python3 scripts/humanize_ppt.py \
   --source examples/01-ai-tool-update/source.md \
   --out .humanize-ppt-runs/ai-tool-update-v0.5-complete \
   --title "AI 工具更新，不只是功能清单" \
@@ -114,7 +117,7 @@ python3 scripts/humanize_ppt_v5.py \
 也可以跑 Hermes 安装讲解案例：
 
 ```bash
-python3 scripts/humanize_ppt_v3.py \
+python3 scripts/humanize_ppt.py \
   --source examples/02-hermes-install-guide/source.md \
   --out .humanize-ppt-runs/hermes-install-v0.3-preview \
   --title "把 Hermes 装成一个真正能干活的 Agent" \

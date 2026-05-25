@@ -231,17 +231,14 @@ python3 scripts/humanize_ppt_v5.py --help
 
 1. 新建 `docs/versions/`。
 2. 移动：
-   - `docs/v0.2-router-edition.md` → `docs/versions/v0.2-router-edition.md`
-   - `docs/v0.3-preview-first.md` → `docs/versions/v0.3-preview-first.md`
-   - `docs/v0.4-selected-template-full-deck.md` → `docs/versions/v0.4-selected-template-full-deck.md`
-   - `docs/v0.5-presenter-export-adapter.md` → `docs/versions/v0.5-presenter-export-adapter.md`
+   - V0.2 到 V0.5 的历史版本说明统一收纳到 `docs/versions/`
 3. 更新 README / SKILL.md 中对应路径。
 4. 保留 `docs/plans/`，不混入正式版本文档。
 
 验收：
 
 ```bash
-grep -R "docs/v0\." -n README.md README.en.md SKILL.md docs || true
+grep -R "docs/v0\." -n README.md README.en.md SKILL.md docs --exclude-dir=plans || true
 ```
 
 不应再出现旧路径引用。
@@ -335,7 +332,7 @@ test -f /tmp/humanize-ppt-smoke/run_manifest.json
 
 **文件：**
 
-- Move: `docs/v0.*.md` → `docs/versions/`
+- Move: historical V0.x version notes → `docs/versions/`
 - Modify: `SKILL.md`
 - Modify: `README.md`
 - Modify: `README.en.md`
@@ -388,7 +385,7 @@ test -f /tmp/humanize-ppt-smoke/run_manifest.json
 建议现在先确认以下决策：
 
 1. 是否同意新增 `scripts/humanize_ppt.py` 作为唯一推荐主入口？
-2. 是否同意把 `docs/v0.*.md` 移到 `docs/versions/`？
+2. 是否同意把历史 V0.x 版本说明移到 `docs/versions/`？
 3. 是否同意本轮不拆 `humanize_ppt_v2.py`，只做入口和文档减熵？
 4. 是否同意本轮完成后优先定为 `v0.5.1` 或 `v0.6.0`，暂不冲 `v1.0`？
 
