@@ -1,7 +1,7 @@
 ---
 name: humanize-ppt
 description: AST-based outline director and router for human-centered AI presentation workflows. Use before generating PPT/HTML slides from raw material, or as the single entrypoint that routes to downstream PPT Skills.
-version: 0.5.0
+version: 0.6.0
 author: LearnPrompt
 license: MIT
 metadata:
