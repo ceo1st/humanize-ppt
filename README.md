@@ -2,13 +2,11 @@
 
 # Humanize PPT
 
-## 基于AST理论的人感PPT大纲导演Skill
+## 面向 Agent 的 PPT 工作流导演
 
-**先把资料变成人愿意听的大纲，再交给HTML PPT Skill做风格探索、生成页面、补演讲模式和导出包。**
+**先把资料变成人愿意听的生产契约，再交给下游 PPT Skill 做风格探索、页面生成、演讲模式和部署。**
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-green?style=flat-square)](https://learnprompt.github.io/humanize-ppt/)
-[![Release](https://img.shields.io/github/v/release/LearnPrompt/humanize-ppt?style=flat-square)](https://github.com/LearnPrompt/humanize-ppt/releases)
-[![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
+[GitHub Pages](https://learnprompt.github.io/humanize-ppt/) · [Release](https://github.com/LearnPrompt/humanize-ppt/releases) · [MIT License](LICENSE)
 
 [在线预览](https://learnprompt.github.io/humanize-ppt/) · [English](README.en.md) · [AST理论](docs/AST-theory.md) · [OPC工作流](docs/OPC-workflow.md) · [Agent Teams](docs/agent-teams.md)
 
@@ -16,23 +14,60 @@
 
 ---
 
-## 这是什么
+## 效果展示
 
-Humanize PPT 是一个**PPT大纲导演**。它不直接充当模板库，也不把原始资料粗暴塞进页面，而是先生成一份适合讲解、适合演示、适合交给下游渲染器的生产契约。
+Humanize PPT 不直接抢模板库的工作。它负责把资料整理成清晰的 AST 契约，再把生产任务路由给适合的 PPT Skill。当前稳定样例包含中文 guizang 路径和英文 Neo-Grid 路径。
 
-它用AST理论把资料拆成：
+| 中文 guizang 稳定样例 | English Neo-Grid 样例 |
+| --- | --- |
+| [![中文 guizang 稳定样例](docs/showcase/hermes-agent-mastery/presenter/presenter-screenshot.png)](https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/presenter/) | [![English Neo-Grid 样例](docs/showcase/hermes-agent-mastery/en/presenter/presenter-screenshot.png)](https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/en/presenter/) |
+| 打开[中文演讲模式](https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/presenter/)或[中文 PPT](https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/ppt/) | 打开[English presenter](https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/en/presenter/)或[English deck](https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/en/ppt/) |
 
-- **Audience**：观众是谁，知道什么，抗拒什么；
-- **State**：观众看之前是什么状态，看完以后应该变成什么状态；
-- **Transfer**：每一页如何推动这次状态转移。
+也可以查看已经发布的 [Skill 分享 PPT](https://learnprompt.github.io/humanize-ppt/showcase/skill-share/)。
 
-核心判断：
+## 30 秒开始：让 Agent 安装并使用
 
-> PPT不只是信息容器，而是观众状态改变器。
+如果你正在使用 Codex、Claude Code、Hermes 或其他支持 Skill 的 Agent，把这段话发给它：
 
-## 快速开始
+```text
+请安装并使用 Humanize PPT Skill：
+https://github.com/LearnPrompt/humanize-ppt
 
-新用户只需要记住一个入口：
+我要做一份 PPT。请先用 Humanize PPT 把资料整理成 AST 生产契约，
+再根据语言和场景选择下游 PPT Skill。
+中文内容优先走 guizang 稳定成稿；
+英文内容先给我至少 5 个风格候选，等我选定后再生成完整 deck。
+最后请补 presenter / export / QA，并把输出路径告诉我。
+```
+
+如果你的 Agent 需要明确安装命令，可以让它执行：
+
+```bash
+npx skills add https://github.com/LearnPrompt/humanize-ppt.git -g -y
+```
+
+## 怎么跟 Agent 交流
+
+你不需要一开始就写 CLI 参数。更自然的方式是按阶段给 Agent 下任务：
+
+```text
+我有一份关于「AI 工具更新」的资料，请用 Humanize PPT 先生成 PPT 大纲和风格预览。
+目标观众是产品团队，重点不是功能清单，而是让他们理解这些工具会改变工作流。
+```
+
+```text
+我选第 2 个风格。请继续生成完整 PPT，并补演讲模式。
+如果需要素材，请先告诉我哪些页适合做 GPT 图片、SVG 图或 Remotion 短视频。
+```
+
+```text
+请做 QA：检查标题是否重复、素材文字是否裁切、页面是否太空、视频是否能播放。
+把问题列出来，能修的直接修，最后给我本地路径和可上线路径。
+```
+
+## CLI 复现方式
+
+如果你想绕过 Agent、直接在本地复现，可以运行：
 
 ```bash
 python3 scripts/humanize_ppt.py \
@@ -49,7 +84,7 @@ open .humanize-ppt-runs/ai-tool-update-preview/outputs/beautiful/previews/index.
 open .humanize-ppt-runs/ai-tool-update-preview/outputs/qa/qa_report.md
 ```
 
-如果已经选中一个Beautiful模板，可以继续生成完整deck，并补齐presenter/export：
+如果已经选中一个 Beautiful 模板，可以继续生成完整 deck，并补齐 presenter/export：
 
 ```bash
 python3 scripts/humanize_ppt.py \
@@ -61,11 +96,53 @@ python3 scripts/humanize_ppt.py \
   --export-adapter
 ```
 
-旧版`scripts/humanize_ppt_v1.py`到`scripts/humanize_ppt_v5.py`仍保留，用于兼容和历史复现；README只推荐`scripts/humanize_ppt.py`。
+旧版 `scripts/humanize_ppt_v1.py` 到 `scripts/humanize_ppt_v5.py` 仍保留，用于兼容和历史复现；README 只推荐 `scripts/humanize_ppt.py`。
 
-## 无依赖smoke验证
+## 能力
 
-如果本机没有pytest，也可以先跑标准库smoke check：
+- **生成 AST 契约**：把资料转成观众、状态转移、页面意图和讲述节奏。
+- **路由下游 Skill**：根据语言和风格需求，把任务交给 guizang、Beautiful templates、presenter/export 等路径。
+- **先预览再成稿**：英文路径默认先出至少 5 个风格候选，选中后再生成完整 deck。
+- **补齐交付闭环**：生成 presenter、导出包、QA 报告和可上线静态路径。
+
+## 适合 / 不适合
+
+适合：
+
+- 你有资料、主题或大纲，但还缺一个可讲、可渲染、可 QA 的 PPT 生产契约。
+- 你希望中文 PPT 默认走稳定 guizang 成稿路径。
+- 你希望英文 PPT 先做多风格探索，再选择一个方向继续生产。
+- 你要把 PPT 交给 Agent Teams，而不是手动在模板里搬运内容。
+
+不适合：
+
+- 你只想找一个单页模板库。
+- 你希望它直接替代所有 HTML PPT / Remotion / 图片生成 Skill。
+- 你还没有明确主题、观众或交付场景。
+
+## 工作流路径
+
+中文默认路径已经固定为：`Humanize PPT → guizang → material QA → presenter → static deploy`。当内容是中文且没有显式要求多风格探索时，优先把 guizang 当作稳定成稿路径；成稿后再补素材 QA、演讲模式和部署包。
+
+英文默认路径已经固定为：`Humanize PPT → theme brief → 5-style gallery → selected style full deck → presenter/deploy`。英文路径不直接跳到单一成稿风格；先基于主题生成至少 5 个可见候选，选中后再走完整 deck、演讲模式和部署。
+
+Humanize PPT 当前重点是稳定“资料 → AST 生产契约 → 风格预览/完整 deck → presenter/export → QA”的工作流。更多 renderer 自动化、视频生成、部署平台集成和团队包上传会放到后续版本。
+
+## 为什么是 AST
+
+Humanize PPT 用 AST 理论把资料拆成：
+
+- **Audience**：观众是谁，知道什么，抗拒什么；
+- **State**：观众看之前是什么状态，看完以后应该变成什么状态；
+- **Transfer**：每一页如何推动这次状态转移。
+
+核心判断：
+
+> PPT 不只是信息容器，而是观众状态改变器。
+
+## 无依赖 smoke 验证
+
+如果本机没有 pytest，也可以先跑标准库 smoke check：
 
 ```bash
 python3 scripts/smoke_check.py
@@ -110,46 +187,26 @@ out/
     qa/
 ```
 
-根据是否选择模板、是否启用presenter/export，部分输出目录可能为空或标记为待处理。
+根据是否选择模板、是否启用 presenter/export，部分输出目录可能为空或标记为待处理。
 
 ## 当前能力边界
 
 - 推荐入口：`scripts/humanize_ppt.py`
-- 兼容入口：`scripts/humanize_ppt_v1.py`到`scripts/humanize_ppt_v5.py`
+- 兼容入口：`scripts/humanize_ppt_v1.py` 到 `scripts/humanize_ppt_v5.py`
 - 历史版本说明：`docs/versions/`
 - 版本计划与审查：`docs/plans/`
 - 脱敏样例：`examples/`
 
-Humanize PPT 当前重点是稳定“资料 → AST生产契约 → 风格预览/完整deck → presenter/export → QA”的工作流。更多renderer自动化、视频生成、部署平台集成和团队包上传会放到后续版本，不塞进这次目录整理。
+## Reference
 
-V0.6.1 补充了 guizang downstream 工作流经验：Humanize PPT 先产出 AST 契约，guizang 负责中文稳定渲染，素材生产和视觉 QA 作为独立 pass 记录。文字精确的信息图优先用 SVG/HTML 等确定性素材；Remotion 用作短流程视频素材，不替代 PPT 页面本体。
+Humanize PPT 的设计参考了这些项目和规则：
 
-V0.6.2 固定中文 PPT 的下一段默认路径：`Humanize PPT → guizang → material QA → presenter → static deploy`。当内容是中文且没有显式要求多风格探索时，优先把 guizang 当作稳定成稿路径；成稿后再补演讲模式和部署包，而不是把 presenter 当成另一种视觉风格。
-
-V0.6.3 固定英文 PPT 的风格探索闸门：`Humanize PPT → theme brief → 5-style gallery → selected style full deck → presenter/deploy`。英文路径不直接跳到单一成稿风格；先基于主题生成至少 5 个可见候选，选中后再走完整 deck、演讲模式和部署。
-
-## 在线预览
-
-- 首页：https://learnprompt.github.io/humanize-ppt/
-- Skill分享PPT展示页：https://learnprompt.github.io/humanize-ppt/showcase/skill-share/
-- Hermes Agent Mastery 演讲模式：https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/presenter/
-- Hermes Agent Mastery PPT：https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/ppt/
-- Hermes Agent Mastery English Presenter：https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/en/presenter/
-- Hermes Agent Mastery English PPT：https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/en/ppt/
-
-风格探索和其他生成模式还在调试中，公开入口先隐藏。中文 guizang → presenter 路径和英文 Neo-Grid → presenter 路径先作为稳定样例开放。
-
-## 参考文档
-
-- [AST理论](docs/AST-theory.md)
-- [OPC工作流](docs/OPC-workflow.md)
-- [Agent Teams](docs/agent-teams.md)
-- [Smoke Test](docs/smoke-test.md)
-- [Guizang material QA](references/guizang-material-qa.md)
-- [Guizang presenter deploy](references/guizang-presenter-deploy.md)
-- [English style gallery](docs/versions/v0.6.3-english-style-gallery.md)
-- [版本历史](docs/versions/)
-- [发版前审查清单](docs/plans/2026-05-25-release-readiness-checklist.md)
+- [op7418/guizang-ppt-skill](https://github.com/op7418/guizang-ppt-skill)：中文稳定成稿、Swiss 风格约束、素材 QA。
+- [zarazhangrui/beautiful-html-templates](https://github.com/zarazhangrui/beautiful-html-templates)：英文路径的多风格候选和 selected-template full deck。
+- [zarazhangrui/frontend-slides](https://github.com/zarazhangrui/frontend-slides)：英文 slide workflow、viewport-safe HTML deck、PPTX/发布方向。
+- [huggingface/smolagents](https://github.com/huggingface/smolagents)：code-first Agent 工作流参考，帮助定义“Agent 读契约、执行工具、写回结果”的协作方式。
+- [AST 理论](docs/AST-theory.md)、[OPC 工作流](docs/OPC-workflow.md)、[Agent Teams](docs/agent-teams.md)：Humanize PPT 自己的生产契约、路由规则和多 Agent 分工。
+- [Guizang material QA](references/guizang-material-qa.md)、[Guizang presenter deploy](references/guizang-presenter-deploy.md)、[English style gallery](docs/versions/v0.6.3-english-style-gallery.md)：当前中文和英文稳定路径的操作规章。
 
 ## License
 

@@ -2,13 +2,11 @@
 
 # Humanize PPT
 
-## AST-based outline director for human-centered AI presentation workflows
+## Presentation workflow director for agents
 
-**Turn raw material into an audience-aware production brief before rendering slides.**
+**Turn raw material into a human-centered production contract, then hand it to downstream PPT skills for style exploration, slide rendering, presenter mode, and deployment.**
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-green?style=flat-square)](https://learnprompt.github.io/humanize-ppt/)
-[![Release](https://img.shields.io/github/v/release/LearnPrompt/humanize-ppt?style=flat-square)](https://github.com/LearnPrompt/humanize-ppt/releases)
-[![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
+[GitHub Pages](https://learnprompt.github.io/humanize-ppt/) · [Release](https://github.com/LearnPrompt/humanize-ppt/releases) · [MIT License](LICENSE)
 
 [Live Preview](https://learnprompt.github.io/humanize-ppt/) · [中文](README.md) · [AST Theory](docs/AST-theory.md) · [OPC Workflow](docs/OPC-workflow.md) · [Agent Teams](docs/agent-teams.md)
 
@@ -16,23 +14,63 @@
 
 ---
 
-## What is this?
+## Showcase
 
-Humanize PPT is an **outline director** for presentation workflows. It does not act as a template library. It first turns raw material into a production contract that is easier to present, render, QA, and adapt.
+Humanize PPT does not try to be a template library. It turns source material into a clear AST contract, then routes production to the right PPT skill. The current stable showcases cover the Chinese guizang path and the English Neo-Grid path.
 
-It uses AST theory:
+| Chinese guizang path | English Neo-Grid path |
+| --- | --- |
+| [![Chinese guizang showcase](docs/showcase/hermes-agent-mastery/presenter/presenter-screenshot.png)](https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/presenter/) | [![English Neo-Grid showcase](docs/showcase/hermes-agent-mastery/en/presenter/presenter-screenshot.png)](https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/en/presenter/) |
+| Open the [Chinese presenter](https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/presenter/) or [Chinese deck](https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/ppt/) | Open the [English presenter](https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/en/presenter/) or [English deck](https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/en/ppt/) |
 
-- **Audience**: who is listening, what they know, and what they resist;
-- **State**: where the audience starts and where the deck should move them;
-- **Transfer**: how each slide moves the audience forward.
+You can also view the published [Skill sharing deck](https://learnprompt.github.io/humanize-ppt/showcase/skill-share/).
 
-Core idea:
+## 30-second start: ask your agent to install and use it
 
-> PPT is not an information container. PPT is an audience state-transfer artifact.
+If you use Codex, Claude Code, Hermes, or another Skill-aware agent, send it this:
 
-## Quick start
+```text
+Please install and use the Humanize PPT Skill:
+https://github.com/LearnPrompt/humanize-ppt
 
-New users only need one entrypoint:
+I want to create a presentation. First use Humanize PPT to turn my material
+into an AST production contract, then choose the downstream PPT skill based on
+language and delivery context.
+For Chinese content, prefer the stable guizang path.
+For English content, show me at least 5 style candidates before making the full deck.
+After I approve the deck, add presenter / export / QA and report the output paths.
+```
+
+If your agent needs an explicit install command, ask it to run:
+
+```bash
+npx skills add https://github.com/LearnPrompt/humanize-ppt.git -g -y
+```
+
+## How to talk to the agent
+
+You do not need to start with CLI flags. The natural interaction is staged:
+
+```text
+I have material about "AI tool updates". Use Humanize PPT to create the PPT outline
+and style preview first. The audience is a product team. The point is not a feature
+list; I want them to understand how these tools change the workflow.
+```
+
+```text
+I choose the second style. Continue into the full deck and add presenter mode.
+If the deck needs materials, tell me which slides should use GPT images, SVG diagrams,
+or Remotion clips before producing them.
+```
+
+```text
+Run QA: check repeated titles, clipped text in materials, empty slides, and video playback.
+List the issues, fix what you can, then give me the local paths and deployable paths.
+```
+
+## CLI reproduction
+
+If you want to bypass the agent and reproduce the path locally, run:
 
 ```bash
 python3 scripts/humanize_ppt.py \
@@ -62,6 +100,48 @@ python3 scripts/humanize_ppt.py \
 ```
 
 Legacy `scripts/humanize_ppt_v1.py` through `scripts/humanize_ppt_v5.py` remain available for compatibility and historical reproduction. README examples only recommend `scripts/humanize_ppt.py`.
+
+## What it does
+
+- **Creates an AST contract**: audience, state transfer, slide intent, and speaking rhythm.
+- **Routes downstream skills**: guizang, Beautiful templates, presenter/export adapters, and QA.
+- **Previews before final render**: English decks show at least five visible style candidates before the selected full deck.
+- **Completes the delivery loop**: presenter mode, export package, QA report, and static deploy path.
+
+## Good fit / Not a fit
+
+Good fit:
+
+- You have source material, a topic, or a rough outline, but need a presentable and renderable PPT production contract.
+- You want Chinese decks to default to the stable guizang production path.
+- You want English decks to explore multiple visual directions before final rendering.
+- You want Agent Teams to produce the deck instead of manually moving content into templates.
+
+Not a fit:
+
+- You only need a one-off template library.
+- You expect it to replace every HTML PPT, Remotion, or image-generation skill.
+- You do not yet know the audience, topic, or delivery setting.
+
+## Workflow paths
+
+The Chinese default path is now fixed as: `Humanize PPT → guizang → material QA → presenter → static deploy`. For Chinese content without an explicit style-exploration request, guizang is the stable rendering path; presenter mode and deploy come after the deck is approved.
+
+The English default path is now fixed as: `Humanize PPT → theme brief → 5-style gallery → selected style full deck → presenter/deploy`. English decks should not jump straight into one final visual system; they first show at least five visible style candidates, then continue only after a style is selected.
+
+The current focus is a stable material → AST contract → preview/full deck → presenter/export → QA workflow. Broader renderer automation, video generation, deployment integrations, and team-package uploading are deferred.
+
+## Why AST
+
+Humanize PPT uses AST theory:
+
+- **Audience**: who is listening, what they know, and what they resist;
+- **State**: where the audience starts and where the deck should move them;
+- **Transfer**: how each slide moves the audience forward.
+
+Core idea:
+
+> PPT is not an information container. PPT is an audience state-transfer artifact.
 
 ## No-dependency smoke check
 
@@ -120,32 +200,16 @@ Some renderer-specific folders may be empty or marked pending depending on the s
 - Plans and reviews: `docs/plans/`
 - Safe sample inputs: `examples/`
 
-The current focus is a stable material → AST contract → preview/full deck → presenter/export → QA workflow. Broader renderer automation, video generation, deployment integrations, and team-package uploading are deferred.
+## Reference
 
-V0.6.2 fixes the default Chinese PPT path as `Humanize PPT → guizang → material QA → presenter → static deploy`.
+Humanize PPT is shaped by these projects and operating rules:
 
-V0.6.3 fixes the default English PPT gate as `Humanize PPT → theme brief → 5-style gallery → selected style full deck → presenter/deploy`. English decks should not jump straight into one final visual system; they first show at least five visible style candidates, then continue only after a style is selected.
-
-## Live preview
-
-- Home: https://learnprompt.github.io/humanize-ppt/
-- Skill sharing deck showcase: https://learnprompt.github.io/humanize-ppt/showcase/skill-share/
-- Hermes Agent Mastery presenter: https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/presenter/
-- Hermes Agent Mastery deck: https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/ppt/
-- Hermes Agent Mastery English presenter: https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/en/presenter/
-- Hermes Agent Mastery English deck: https://learnprompt.github.io/humanize-ppt/showcase/hermes-agent-mastery/en/ppt/
-
-Style exploration is still treated as a workflow gate rather than a public showcase entry. Presenter mode, the Chinese stable showcase, and the selected English Neo-Grid showcase are exposed as the current reference paths.
-
-## References
-
-- [AST Theory](docs/AST-theory.md)
-- [OPC Workflow](docs/OPC-workflow.md)
-- [Agent Teams](docs/agent-teams.md)
-- [Smoke Test](docs/smoke-test.md)
-- [English Style Gallery](docs/versions/v0.6.3-english-style-gallery.md)
-- [Version History](docs/versions/)
-- [Release Readiness Checklist](docs/plans/2026-05-25-release-readiness-checklist.md)
+- [op7418/guizang-ppt-skill](https://github.com/op7418/guizang-ppt-skill): stable Chinese deck production, Swiss visual constraints, and material QA.
+- [zarazhangrui/beautiful-html-templates](https://github.com/zarazhangrui/beautiful-html-templates): English multi-style candidates and selected-template full deck production.
+- [zarazhangrui/frontend-slides](https://github.com/zarazhangrui/frontend-slides): English slide workflow, viewport-safe HTML decks, PPTX, and publishing direction.
+- [huggingface/smolagents](https://github.com/huggingface/smolagents): a code-first agent workflow reference for the "read contract, run tools, write back results" collaboration pattern.
+- [AST Theory](docs/AST-theory.md), [OPC Workflow](docs/OPC-workflow.md), and [Agent Teams](docs/agent-teams.md): Humanize PPT's own production contract, routing model, and multi-agent division of labor.
+- [Guizang material QA](references/guizang-material-qa.md), [Guizang presenter deploy](references/guizang-presenter-deploy.md), and [English Style Gallery](docs/versions/v0.6.3-english-style-gallery.md): current operating rules for the stable Chinese and English paths.
 
 ## License
 
