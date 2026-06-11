@@ -21,6 +21,17 @@
 
 ## 效果展示
 
+<p align="center">
+  <img src="examples/03-codex-guizang-native-ink-classic/preview-slide-01.png" width="32%" />
+  <img src="examples/03-codex-guizang-native-ink-classic/preview-slide-05.png" width="32%" />
+  <img src="examples/03-codex-guizang-native-ink-classic/preview-slide-10.png" width="32%" />
+</p>
+
+<p align="center"><sub>
+▲ Guizang Style A / Ink Classic 已知合格品(10 页 / 86 个 data-anim / WebGL hero)——Humanize 出 brief 和 QA，guizang-ppt-skill 原生渲染。
+<a href="https://learnprompt.github.io/humanize-ppt/">在线翻完整 deck →</a>
+</sub></p>
+
 Humanize PPT 不抢模板库的工作。它是**简报编排器**：把资料整理成 AST 大纲 + 逐页素材决定（要不要图、要不要 SVG 示意图、要不要 Remotion 视频），写一份 `*-production-prompt.md` 给下游 Skill 100% 原生渲染，最后用 QA 循环盯住渲染结果。Humanize 自己不出 HTML。
 
 `examples/03-codex-guizang-native-ink-classic/` 是一份**已知合格的 Guizang Style A / Ink Classic 原生成品**（10 页、86 个 `data-anim`、WebGL hero 背景）。它不是 Humanize 的产物——是 `guizang-ppt-skill` 跑出来的，作为 QA 循环的视觉基准。
