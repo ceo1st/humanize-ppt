@@ -2,7 +2,7 @@
 
 # Humanize PPT
 
-## PPT brief orchestrator for agents (v0.6.4)
+## PPT brief orchestrator for agents (v0.6.5)
 
 **Turn raw material into an audience-aware AST outline + per-page media decisions, hand a production brief to a native downstream PPT skill, and run a post-render QA loop on the output. Humanize never renders HTML itself.**
 
@@ -58,7 +58,7 @@ any downstream skill — it only writes briefs and runs QA.
 If your agent needs an explicit install command, ask it to run:
 
 ```bash
-npx skills add https://github.com/LearnPrompt/humanize-ppt.git -g -y
+npx skills add LearnPrompt/humanize-ppt -g
 ```
 
 ## How to talk to the agent
