@@ -105,7 +105,7 @@ Claude Code 用户也可以走 plugin marketplace（自动更新）：
 
 | 体检前：页码徽章吃掉正文 | 体检后：每个字都拿得出口 |
 |---|---|
-| ![体检前,左下角页码徽章遮住正文,只剩 uires confirmation. 的断句](docs/showcase/hermes-agent-mastery/en/ppt/assets/qa-before-s05.png) | ![体检后,What requires confirmation. 完整可见](docs/showcase/hermes-agent-mastery/en/ppt/assets/qa-after-s05.png) |
+| <img src="docs/showcase/hermes-agent-mastery/en/ppt/assets/qa-before-s05.png" width="430" alt="体检前,左下角页码徽章遮住正文,只剩 uires confirmation. 的断句"> | <img src="docs/showcase/hermes-agent-mastery/en/ppt/assets/qa-after-s05.png" width="430" alt="体检后,What requires confirmation. 完整可见"> |
 
 <p align="center"><sub>
 ▲ 真实案例（2026-06-13 英文 deck）：静态扫描通过，截图逐页复核发现页码徽章遮挡 9 页正文，观众看到的是「uires confirmation.」这样的断句。自动揪出来、出修复指令，复检通过——不用你再跟 Codex 一页页数。<a href="docs/showcase/hermes-agent-mastery/en/qa/presentation-checkup-2026-06-13.md">逐轮记录</a> · <a href="https://learnprompt.github.io/humanize-ppt/">在线翻完整 deck</a>

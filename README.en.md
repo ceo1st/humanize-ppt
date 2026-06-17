@@ -107,7 +107,7 @@ For Chinese, swap in "Chinese + guizang-ppt-skill". CLI flags, staged control, a
 
 | Before: page badge eats the body text | After: every word is presentable |
 |---|---|
-| ![Before, the page badge covers the body, leaving "uires confirmation."](docs/showcase/hermes-agent-mastery/en/ppt/assets/qa-before-s05.png) | ![After, "What requires confirmation." is fully visible](docs/showcase/hermes-agent-mastery/en/ppt/assets/qa-after-s05.png) |
+| <img src="docs/showcase/hermes-agent-mastery/en/ppt/assets/qa-before-s05.png" width="430" alt="Before, the page badge covers the body, leaving 'uires confirmation.'"> | <img src="docs/showcase/hermes-agent-mastery/en/ppt/assets/qa-after-s05.png" width="430" alt="After, 'What requires confirmation.' is fully visible"> |
 
 <p align="center"><sub>
 ▲ Real case (2026-06-13 English deck): static scan passed, but the per-page screenshot review found a page-number badge covering body text on 9 pages — the audience would read "uires confirmation." Caught automatically, fix prompt emitted, re-check passed — no more hunting page numbers by hand with Codex. <a href="docs/showcase/hermes-agent-mastery/en/qa/presentation-checkup-2026-06-13.md">Round log</a> · <a href="https://learnprompt.github.io/humanize-ppt/">Browse the deck</a>
