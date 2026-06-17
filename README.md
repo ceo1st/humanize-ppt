@@ -162,7 +162,7 @@ Claude Code 用户也可以走 plugin marketplace（自动更新）：
 ### 给 Agent 的完整任务模板
 
 ```text
-请安装并使用 Humanize PPT Skill（v0.8.0+）：
+请安装并使用 Humanize PPT Skill（v0.9+）：
 https://github.com/LearnPrompt/humanize-ppt
 
 我要做一份 PPT。请按下面三步走，不要让 Humanize 自己渲染任何 HTML：
@@ -391,7 +391,7 @@ out/
 ## 当前能力边界
 
 - 推荐入口：`scripts/humanize_ppt.py`（演讲大纲预览：`scripts/preview_outline_html.py`）
-- 历史版本说明：`docs/versions/`（v0.8.0 为什么改：`docs/versions/v0.8.0-presentation-checkup.md`）
+- 历史版本说明：`docs/versions/`（v0.9 为什么改：`docs/versions/v0.9.0-style-gallery.md`）
 - 版本计划与审查：`docs/plans/`
 - 脱敏样例：`examples/`
 - 中文已知合格品：`examples/03-codex-guizang-native-ink-classic/`
@@ -414,7 +414,7 @@ Humanize PPT 的设计参考了这些项目和操作规章：
 - [zarazhangrui/frontend-slides](https://github.com/zarazhangrui/frontend-slides)：英文 slide workflow、viewport-safe HTML deck、PPTX/发布方向。
 - [huggingface/smolagents](https://github.com/huggingface/smolagents)：code-first Agent 工作流参考，帮助定义「Agent 读契约、执行工具、写回结果」的协作方式。
 - [AST 理论](docs/AST-theory.md)、[OPC 工作流](docs/OPC-workflow.md)：Humanize PPT 自己的大纲方法、路由规则和执行边界。
-- [v0.8.0 版本说明](docs/versions/v0.8.0-presentation-checkup.md)、[v0.7.0 版本说明](docs/versions/v0.7.0-render-qa-inspector.md)、[v0.6.4 版本说明](docs/versions/v0.6.4-guizang-production-brief-orchestrator.md)、[brief 规约](references/guizang-production-brief-orchestrator.md)、[演讲体检失败模式](references/qa-failure-modes.md)：简报编排 + 演讲体检的契约，和质检员定位的来由。
+- [SPEC.md](SPEC.md)（引擎技术规格）、[v0.9 版本说明](docs/versions/v0.9.0-style-gallery.md)、[风格画廊规约](references/style-gallery-spec.md)、[v0.8.0 版本说明](docs/versions/v0.8.0-presentation-checkup.md)、[v0.7.0 版本说明](docs/versions/v0.7.0-render-qa-inspector.md)、[v0.6.4 版本说明](docs/versions/v0.6.4-guizang-production-brief-orchestrator.md)、[brief 规约](references/guizang-production-brief-orchestrator.md)、[演讲体检失败模式](references/qa-failure-modes.md)：简报编排 + 演讲体检的契约，和质检员定位的来由。
 
 ## License
 

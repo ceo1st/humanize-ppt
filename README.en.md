@@ -2,7 +2,7 @@
 
 # Humanize PPT
 
-## Render-QA inspector for agent-made PPTs (v0.8.0)
+## Render-QA inspector for agent-made PPTs (v0.9)
 
 > *Everyone is teaching AI to render beautiful slides. Nobody is watching how badly they come out.*
 
@@ -10,7 +10,7 @@
 
 [Live Preview](https://learnprompt.github.io/humanize-ppt/) · [Release](https://github.com/LearnPrompt/humanize-ppt/releases) · [MIT License](LICENSE)
 
-[中文](README.md) · [AST Theory](docs/AST-theory.md) · [v0.8.0 Release Notes](docs/versions/v0.8.0-presentation-checkup.md)
+[中文](README.md) · [AST Theory](docs/AST-theory.md) · [v0.9 Release Notes](docs/versions/v0.9.0-style-gallery.md)
 
 </div>
 
@@ -148,7 +148,7 @@ npx skills add LearnPrompt/humanize-ppt -g
 ### Full task template for the agent
 
 ```text
-Please install and use the Humanize PPT Skill (v0.8.0+):
+Please install and use the Humanize PPT Skill (v0.9+):
 https://github.com/LearnPrompt/humanize-ppt
 
 I want to create a presentation. Follow these three steps. Do NOT let Humanize
@@ -360,7 +360,7 @@ Presentation-checkup mode (CLI `--qa-from`) appends `fix_prompt.md` and `qa_iter
 ## Current boundaries
 
 - Recommended entrypoint: `scripts/humanize_ppt.py` (outline preview: `scripts/preview_outline_html.py`)
-- Historical version notes: `docs/versions/` (why v0.8.0: `docs/versions/v0.8.0-presentation-checkup.md`)
+- Historical version notes: `docs/versions/` (why v0.9: `docs/versions/v0.9.0-style-gallery.md`)
 - Plans and reviews: `docs/plans/`
 - Safe sample inputs: `examples/`
 - Chinese known-good: `examples/03-codex-guizang-native-ink-classic/`
@@ -376,7 +376,7 @@ Humanize PPT is shaped by these projects and operating rules:
 - [zarazhangrui/frontend-slides](https://github.com/zarazhangrui/frontend-slides): English slide workflow, viewport-safe HTML decks, PPTX, and publishing direction.
 - [huggingface/smolagents](https://github.com/huggingface/smolagents): a code-first agent workflow reference for the "read contract, run tools, write back results" collaboration pattern.
 - [AST Theory](docs/AST-theory.md) and [OPC Workflow](docs/OPC-workflow.md): Humanize PPT's own outline method, routing model, and execution boundaries.
-- [v0.8.0 Release Notes](docs/versions/v0.8.0-presentation-checkup.md), [v0.7.0 Release Notes](docs/versions/v0.7.0-render-qa-inspector.md), [v0.6.4 Release Notes](docs/versions/v0.6.4-guizang-production-brief-orchestrator.md), [Brief Specification](references/guizang-production-brief-orchestrator.md), [Presentation Checkup Failure Modes](references/qa-failure-modes.md): the brief-orchestrator + checkup contract, and why the inspector positioning exists.
+- [SPEC.md](SPEC.md) (engine technical specification), [v0.9 Release Notes](docs/versions/v0.9.0-style-gallery.md), [Style Gallery Spec](references/style-gallery-spec.md), [v0.8.0 Release Notes](docs/versions/v0.8.0-presentation-checkup.md), [v0.7.0 Release Notes](docs/versions/v0.7.0-render-qa-inspector.md), [v0.6.4 Release Notes](docs/versions/v0.6.4-guizang-production-brief-orchestrator.md), [Brief Specification](references/guizang-production-brief-orchestrator.md), [Presentation Checkup Failure Modes](references/qa-failure-modes.md): the brief-orchestrator + checkup contract, and why the inspector positioning exists.
 
 ## License
 

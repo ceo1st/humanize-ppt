@@ -1,7 +1,7 @@
 ---
 name: humanize-ppt
 description: Render-QA inspector for agent-made PPTs, plus AST-based outline director and per-page media decision maker. Produces production briefs for native downstream PPT skills (broadly compatible with any skill that outputs HTML PPT; verified recommendations are guizang-ppt-skill for Chinese and frontend-slides / beautiful-html-templates for English), then runs the capped 3-round presentation checkup (演讲体检) on the rendered HTML, comparing each page against its outline page and writing fix prompts. Use before generating PPT/HTML slides from raw material, and after rendering when the user says things like "帮我盯一下渲染出来的 PPT 有没有翻车", "PPT 渲染质检", "给这份 deck 做演讲体检", or "告诉我哪几页只能看不能讲". Pick by need - if all you want is one beautiful template page, with no outline and no presentation checkup, a rendering skill alone is the right tool; bring in Humanize when you need the outline before rendering and the checkup after. Humanize never renders.
-version: 0.8.0
+version: 0.9.0
 author: LearnPrompt
 license: MIT
 requires-skills:
@@ -25,6 +25,8 @@ The presentation checkup in one sentence: it does not grade beauty, it grades th
 Humanize is broadly compatible with **any** downstream skill that can output an HTML PPT: the brief is plain markdown + JSON, anything can read it. The verified, stable recommendations are: Chinese → `guizang-ppt-skill`; English → `frontend-slides` / `beautiful-html-templates`. Other downstreams are hot-pluggable; support levels live in `registry/renderer_registry.json` and are updated only on real results.
 
 It runs **before** downstream PPT / HTML slide skills and **around** the post-render presentation checkup. It owns the AST contract, the per-page media decision (does this page need a photo, a system diagram, a 10-second process clip, nothing?), the production brief that the next agent consumes, and the checkup pass on the rendered HTML. It does **not** own the rendered HTML itself.
+
+There are two human review gates before rendering, both Humanize-owned zero-dependency working drafts (never decks): the **outline preview** (`--preview-outline` / `scripts/preview_outline_html.py`, the audience state-transfer map) and, since **v0.9**, the **style gallery** (`--style-gallery`). The style gallery is the cover-style gate: before the outline, Humanize emits ≥4 cover candidates for the renderer, writes one cover-only render command per candidate for the downstream skill to render, and stitches `style_gallery.html` to pick from. Humanize emits only the spec and the commands; the covers are rendered downstream. Picking a cover yields a re-injection command that carries the chosen style into the normal flow. See `references/style-gallery-spec.md`.
 
 V0.6.4 is the **single entrypoint** for this loop. The user calls Humanize PPT once for the brief, hands the brief to a downstream skill for native rendering, then calls Humanize PPT again with `--qa-from <rendered.html>` to run the 3-iteration presentation checkup. Each iteration writes `qa_report.md` (findings), `fix_prompt.md` (downstream-skill-actionable corrections), and `qa_iteration.json` (round state). After 3 rounds with remaining findings, status flips to `needs-human`.
 
@@ -66,6 +68,12 @@ QA mode (post-render) additionally produces per iteration:
 
 14. `outputs/qa/fix_prompt.md` — downstream-skill-actionable fix instructions.
 15. `outputs/qa/qa_iteration.json` — round number, status (`iterate` / `pass` / `needs-human`), unresolved findings, history.
+
+Style-gallery mode (`--style-gallery`, pre-outline gate) instead produces and stops:
+
+16. `style_gallery.html` — zero-dependency picker stitching ≥4 candidate covers.
+17. `style_gallery_plan.json` — per-candidate id, cli, command_file, cover paths, re-injection command.
+18. `commands/style-gallery/<id>.md` — one cover-only render command per candidate (downstream renders only S01 → `outputs/style-gallery/<id>/cover.{html,png}`).
 
 ## Recommended OPC workflow (v0.6.4)
 
@@ -122,14 +130,18 @@ C — Complete / Control
 ### Renderer-specific guidance (kept for history; the boundary itself is the invariants above)
 
 14. For Chinese PPT production, the recommended stable path is `Humanize PPT → guizang-ppt-skill native → Humanize --qa-from → downstream presenter/deploy`. Guizang's own material QA and Swiss validator run inside the downstream skill. The presentation checkup in Humanize is a second-pair-of-eyes pass, not a replacement.
-15. For English PPT production, the recommended path is `Humanize PPT → frontend-slides or beautiful-html-templates (native) → Humanize --qa-from → downstream deploy`. The downstream skill owns its own template selection, preview gallery, and selected-template full deck. Humanize does not imitate them. **v0.8.0 support levels** (see `registry/renderer_registry.json`): `beautiful-html-templates` is `brief+qa-verified` — a full presentation checkup ran on its real Neo-Grid deck on 2026-06-13 (round log: `docs/showcase/hermes-agent-mastery/en/qa/presentation-checkup-2026-06-13.md`), though it still has 0 renderer-specific failure-mode rules; `frontend-slides` stays `brief-only` because no real frontend-slides render has gone through the checkup yet. State this honestly when a user asks for English-deck checkup; do not overstate either leg.
+15. For English PPT production, the recommended path is `Humanize PPT → frontend-slides or beautiful-html-templates (native) → Humanize --qa-from → downstream deploy`. The downstream skill owns its own template selection, preview gallery, and selected-template full deck. Humanize does not imitate them. **v0.9 support levels** (see `registry/renderer_registry.json`): `beautiful-html-templates` is `brief+qa-verified` — a full presentation checkup ran on its real Neo-Grid deck on 2026-06-13 (round log: `docs/showcase/hermes-agent-mastery/en/qa/presentation-checkup-2026-06-13.md`), though it still has 0 renderer-specific failure-mode rules; `frontend-slides` stays `brief-only` because no real frontend-slides render has gone through the checkup yet. State this honestly when a user asks for English-deck checkup; do not overstate either leg.
 16. The verified Style A checkpoint at `examples/03-codex-guizang-native-ink-classic/` is a read-only visual reference. If the presentation checkup ever fails against it (`test_known_good_style_a_passes_all_style_a_gates`), the fixture or the live Guizang skill has drifted — do not weaken the checkup to make the test pass. The same applies to the English checked-up deck at `docs/showcase/hermes-agent-mastery/en/ppt/` (`test_english_showcase_deck_passes_presentation_checkup`).
 
 ## Operational references
 
 - `references/guizang-production-brief-orchestrator.md` — v0.6.4 canonical brief specification. The human + agent-facing contract for what `<renderer>-production-prompt.md` must contain and what it must not contain.
-- `references/qa-failure-modes.md` — failure mode catalog for the presentation checkup (演讲体检): a renderer-agnostic failure-class layer plus guizang-specific modes, each with what the audience would see. Human-readable; the code-side source of truth is `FAILURE_MODES` in `scripts/humanize_ppt_v2.py`.
+- `SPEC.md` — engine technical specification: boundary, CLI surface (mode-check order), data flow, output contract, the v0.9 style gallery, the presentation checkup, the per-page media model, and the renderer registry. The authoritative "what the engine does and guarantees" reference.
+- `references/qa-failure-modes.md` (+ English mirror `references/qa-failure-modes.en.md`) — failure mode catalog for the presentation checkup (演讲体检): a renderer-agnostic failure-class layer plus guizang-specific modes, each with what the audience would see. Human-readable; the code-side source of truth is `FAILURE_MODES` in `scripts/humanize_ppt_v2.py`. Includes the WebGL-hero static-screenshot capture trap as a "static scan can't catch yet" class.
+- `references/style-gallery-spec.md` — v0.9 spec for the `--style-gallery` cover-style gate: candidates, cover-only commands, the zero-dependency picker, re-injection, and the WebGL screenshot warning.
 - `scripts/preview_outline_html.py` — outline preview: renders the audience state-transfer map (one zero-dependency single-file HTML; per-slide enter-state → intent → leave-state rows plus a state-arc summary) from `slide_plan.json`. Real sample: `examples/04-preview-outline-ai-tool-update/`.
+- `scripts/record_demo_gif.py` — records the style gallery + outline preview (the two zero-dependency working drafts) into one demo GIF (requires playwright + ffmpeg). The gallery covers are downstream-rendered; `--covers-dir` overlays real covers before recording.
+- `docs/versions/v0.9.0-style-gallery.md` — v0.9 release notes: the cover-style gallery gate, the WebGL static-screenshot failure class, the English failure-mode mirror, SPEC.md, and the README/GIF-slot work.
 - `docs/versions/v0.8.0-presentation-checkup.md` — v0.8.0 release notes: why the QA loop was renamed to presentation checkup, the hot-pluggable route framing, the plain-language usage rewrite, and the verified English checkup run.
 - `docs/versions/v0.7.0-render-qa-inspector.md` — v0.7.0 release notes: why the positioning moved to render-QA inspector, English-path support levels, and the outline preview artifact.
 - `references/agent-teams-public-preview.md` — Agent Teams architecture, specialist-agent command protocol, public preview release loop, and README split convention. (Historical; v0.6.4 collapses the Agent Teams model into a brief + QA loop.)
@@ -176,7 +188,7 @@ python3 scripts/humanize_ppt.py \
   --max-qa-iterations 3
 ```
 
-English paths use the same shape with `--renderer beautiful-html-templates` or `--renderer frontend-slides`, which write `beautiful-html-templates-production-prompt.md` or `frontend-slides-production-prompt.md` respectively. (v0.8.0: `beautiful-html-templates` is `support_level: brief+qa-verified` after the 2026-06-13 real-deck checkup; `frontend-slides` remains `brief-only` until a real render of it goes through the checkup.)
+English paths use the same shape with `--renderer beautiful-html-templates` or `--renderer frontend-slides`, which write `beautiful-html-templates-production-prompt.md` or `frontend-slides-production-prompt.md` respectively. (v0.9: `beautiful-html-templates` is `support_level: brief+qa-verified` after the 2026-06-13 real-deck checkup; `frontend-slides` remains `brief-only` until a real render of it goes through the checkup. v0.9 added the style-gallery gate but changed no support level — those move only on real rendered output.)
 
 Outline preview (audience state-transfer map from an existing `slide_plan.json`, zero-dependency single-file HTML):
 
