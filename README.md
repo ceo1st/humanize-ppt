@@ -47,10 +47,12 @@ Claude Code 用户也可以走 plugin marketplace（自动更新）：
 | `guizang-ppt-skill` | 中文 deck 原生渲染（杂志风 / 瑞士风） | [op7418/guizang-ppt-skill](https://github.com/op7418/guizang-ppt-skill) |
 | `frontend-slides` | 英文 deck 原生渲染（viewport-safe HTML） | [zarazhangrui/frontend-slides](https://github.com/zarazhangrui/frontend-slides) |
 | `beautiful-html-templates` | 英文 deck 多模板渲染 | [zarazhangrui/beautiful-html-templates](https://github.com/zarazhangrui/beautiful-html-templates) |
-| `remotion-video-toolkit` | 逐页说明视频（真 mp4） | Remotion |
+| `remotion-video-production` | 逐页说明视频（真 mp4），统筹整个视频生产 | Remotion 系（见下方搭配） |
 | `baoyu-image-gen` | 配图，走本地 Codex CLI（**无需 API key**） | [JimLiu/baoyu-skills](https://github.com/JimLiu/baoyu-skills/tree/main/skills/baoyu-image-gen) |
 
-一句话给 Agent：「把 humanize-ppt 和它推荐的下游 skill（guizang-ppt-skill、frontend-slides、beautiful-html-templates、remotion-video-toolkit、baoyu-image-gen）都装上。」
+**Remotion 怎么搭配**（一点实战经验）：默认用 `remotion-video-production` 统筹流程，写代码时搭 `remotion-best-practices` 防不稳定写法（乱用 CSS / Tailwind animation、资源路径错误这类坑）；字幕、图表、3D、批量模板、自动渲染管线这种复杂工程再补 [`remotion-video-toolkit`](https://github.com/shreefentsar/remotion-video-toolkit)。
+
+一句话给 Agent：「把 humanize-ppt 和它推荐的下游 skill（guizang-ppt-skill、frontend-slides、beautiful-html-templates、remotion-video-production + remotion-best-practices、baoyu-image-gen）都装上。」
 
 ## 一句话用起来
 
@@ -87,7 +89,16 @@ Claude Code 用户也可以走 plugin marketplace（自动更新）：
 </p>
 
 <p align="center"><sub>
-▲ 左：hero 配图，<code>baoyu-image-gen</code> 走本地 Codex CLI 真出图（gpt-image，无需 API key）。右：逐页说明视频，真 Remotion 渲染的 mp4（这里转成 GIF 所以你能看到它动）。逐槽记录见 <a href="docs/showcase/v0.9-visual-enhancement/media-production-2026-06-17.md">产出记录</a>。
+▲ 左：hero 配图，<code>baoyu-image-gen</code> 走本地 Codex CLI 真出图（gpt-image，无需 API key，仰拍人物叠在产品背景上）。右：逐页说明视频，真 Remotion 渲染的 mp4（这里转成 GIF 所以你能看到它动）。逐槽记录见 <a href="docs/showcase/v0.9-visual-enhancement/media-production-2026-06-17.md">产出记录</a>。
+</sub></p>
+
+<p align="center">
+  <img src="docs/showcase/v0.9-visual-enhancement/in-ppt-image.png" width="49%" />
+  <img src="docs/showcase/v0.9-visual-enhancement/in-ppt-video.png" width="49%" />
+</p>
+
+<p align="center"><sub>
+▲ 放进 PPT 里长这样：配图作整页封面、大号非衬线标题压在上面（左）；说明视频嵌进内容页（右）。素材归下游产，Humanize 决定哪页要、放哪、配多大。
 </sub></p>
 
 ### 演讲体检：把被遮挡的字自动揪出来

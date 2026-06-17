@@ -1808,10 +1808,12 @@ slide. Recommended generators (hot-pluggable — swap for any equivalent skill):
 - **diagram** (`svg-html` / `html-table`): render as deterministic inline SVG
   or HTML from `prompt_hint`. No external call, no text overflow. This is the
   right choice for data, metrics, process steps, and any precise-label figure.
-- **video** (`remotion-clip`): call a Remotion skill — `remotion-video-toolkit`
-  / `remotion-video-generator` / `remotion-video-production`. Build a
-  deterministic loop of `duration_s` seconds (no narration), render to
-  `asset_path` (mp4).
+- **video** (`remotion-clip`): default to `remotion-video-production` (it
+  orchestrates the pipeline) paired with `remotion-best-practices` (avoids
+  unstable Remotion patterns — misused CSS/Tailwind animation, wrong asset
+  paths); add `remotion-video-toolkit` only for complex work (captions,
+  charts, 3D, batch templates). Build a deterministic loop of `duration_s`
+  seconds (no narration), render to `asset_path` (mp4).
 - **video** (`hyperframes`): use the HyperFrames pipeline for the clip.
 
 Rule: an asset slot with `asset_path` is an executable task. A slot without

@@ -19,6 +19,8 @@
 
 更新（2026-06-17 晚）：S01 的合成图改用 `baoyu-image-gen`（本地 Codex CLI，无需 key）真出，填掉了原先 blocked 的槽——8 个槽现在全部为真资产。两支 Remotion mp4 另转了循环 GIF（`s04-video.gif` / `s05-video.gif`）放进 README 让效果会动。
 
+更新（人工验收返工）：hero 配图换了风格——初版黑金抽象太像 AI 生成，重出成编辑风商业海报（仰拍人物叠在产品背景上、留白给大号非衬线标题）。另加「素材放进 PPT 里长什么样」的两张截图（`in-ppt-image.png` 配图作封面 + 大号非衬线标题压在上面 / `in-ppt-video.png` 说明视频嵌进内容页），装配器 `asset-in-ppt-demo.html` 在 run 目录。
+
 ## 结论
 
 - **图表（svg-html）**：确定性内联 SVG，零依赖、零外呼，4 个槽全部真出。
