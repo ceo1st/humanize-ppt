@@ -13,7 +13,7 @@
 
 **面向 Agent 的 PPT 渲染质检员。上半场把资料编排成 AST 大纲加逐页素材决定的简报，交给下游 PPT Skill 100% 原生渲染；下半场做演讲体检（即此前的 QA 循环，CLI 仍是 `--qa-from`）。演讲体检对的不是美观，是大纲：逐页核对渲染结果和大纲页的差异，把「只能看、不能讲」的页揪出来，直到每一页都拿得出口去讲。模板库负责渲染得好看，Humanize 负责渲染完有人盯。它自己不渲染。**
 
-[看效果](#效果展示) · [演讲体检](#演讲体检把只能看不能讲的页揪出来) · [演讲大纲预览](#演讲大纲预览渲染之前先看一眼观众状态弧) · [30秒上手](#30-秒开始让-agent-安装并使用) · [触发方式](#触发方式) · [它和同类有什么不同](#它和同类有什么不同) · [安全边界](#安全边界) · [在线预览](https://learnprompt.github.io/humanize-ppt/) · [AST理论](docs/AST-theory.md)
+[看效果](#效果展示) · [演讲体检](#演讲体检把只能看不能讲的页揪出来) · [演讲大纲预览](#演讲大纲预览渲染之前先看一眼观众状态弧) · [风格画廊](#风格画廊渲染之前先比-4-张封面) · [30秒上手](#30-秒开始让-agent-安装并使用) · [触发方式](#触发方式) · [它和同类有什么不同](#它和同类有什么不同) · [安全边界](#安全边界) · [在线预览](https://learnprompt.github.io/humanize-ppt/) · [AST理论](docs/AST-theory.md)
 
 </div>
 
@@ -78,6 +78,18 @@ v0.7.0 起，Humanize 有了第一个自己的可截图产物。不是 PPT（渲
 </sub></p>
 
 它和 `--preview-outline`（markdown 版大纲检查点，v0.6.6 起内置）是同一道关的两种形态：markdown 给 Agent 读，这页 HTML 给人看、给截图。生成命令见下方「进阶用法」。
+
+## 风格画廊：渲染之前，先比 4 张封面
+
+v0.9 起，出大纲之前还有一道门：风格画廊。一句话——别让人盲选风格。Humanize 为主渲染器出 **≥4 个封面候选**（guizang 跨 Style A 三主题加 Style B 瑞士配色，四张视觉互异），每个候选写一条「只渲封面一页」的命令交给下游 skill 真渲，再拼一页零依赖的 `style_gallery.html` 把 4 张封面并排供人挑。挑中哪张，回灌它的命令把那个风格带进正常的大纲 → brief 流程。
+
+封面由下游真渲，Humanize 只出 spec 和 command，自己不渲一个像素——和它一贯的边界一致。命令里对 Style A 的 WebGL hero 封面专门加了警告：静态 PNG 截图会捕获到空白（canvas 加载后才画首帧），以活页 `cover.html` 为准，小于 20KB 的 PNG 判为截图失败而非空封面（见[失败模式目录](references/qa-failure-modes.md)）。规格见 [references/style-gallery-spec.md](references/style-gallery-spec.md)。
+
+<p align="center">
+<sub>▲ 演示 GIF 槽位：风格画廊 + 大纲预览两张零依赖工作底稿的录屏。生成脚本 <code>scripts/record_demo_gif.py</code> 已就位；真录制留到下游真渲 4 张候选封面之后再补——空着的封面位不摆拍，和 showcase 同一条班规。</sub>
+</p>
+
+生成命令见下方「进阶用法」。
 
 ## 30 秒开始：让 Agent 安装并使用
 
@@ -201,6 +213,30 @@ python3 scripts/preview_outline_html.py \
   --title "你的 deck 标题"
 ```
 
+### 风格画廊（v0.9，出大纲前的封面选择门）
+
+```bash
+python3 scripts/humanize_ppt.py \
+  --source examples/01-ai-tool-update/source.md \
+  --out .humanize-ppt-runs/ai-tool-update \
+  --title "AI 工具更新，不只是功能清单" \
+  --renderer guizang \
+  --style-gallery
+```
+
+会得到 `style_gallery.html`（4 张封面的零依赖选择器）、`style_gallery_plan.json` 和 `commands/style-gallery/<id>.md`（每个候选一条「只渲封面」命令）。下游按命令各渲一张封面到 `outputs/style-gallery/<id>/cover.{html,png}`，打开 `style_gallery.html` 挑一张，再跑该候选的回灌命令进入正常流程。`--gallery-count` 默认 4、最小 4，上限取该渲染器的候选数。
+
+### 演示 GIF（工作底稿录制）
+
+```bash
+python3 scripts/record_demo_gif.py \
+  --source examples/01-ai-tool-update/source.md \
+  --title "你的 deck 标题" \
+  --out docs/showcase/demo/humanize-ppt-demo.gif
+```
+
+把风格画廊 + 大纲预览两张零依赖工作底稿录成一支 GIF（需要 playwright + ffmpeg）。画廊封面由下游真渲，`--covers-dir <dir>` 可把真渲封面叠进画廊再录制；不给就录画廊的诚实待渲染态，不摆拍假缩略。
+
 ### 体检通过后怎么收尾
 
 ```text
@@ -230,6 +266,7 @@ python3 scripts/preview_outline_html.py \
 - **生产简报**：写一份 `<renderer>-production-prompt.md` 给下游 skill 100% 原生渲染，不模仿、不 post-process。
 - **演讲体检**：拿到渲染 HTML 后逐页核对渲染结果和大纲页的差异，扫失败模式（[references/qa-failure-modes.md](references/qa-failure-modes.md)），写 fix prompt 给下游 skill 重渲，最多 3 轮。
 - **演讲大纲预览**：从 `slide_plan.json` 生成观众状态转移图（零依赖单文件 HTML），渲染之前人先过一眼状态弧。
+- **风格画廊**（v0.9）：出大纲前先出 ≥4 个封面候选，下游各渲一张封面，拼一页零依赖选择器供人挑风格；挑中后回灌命令带进正常流程。Humanize 只出 spec/command，封面由下游真渲。
 
 ## 适合 / 不适合
 

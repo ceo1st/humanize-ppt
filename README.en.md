@@ -72,6 +72,18 @@ Since v0.7.0, Humanize has its first screenshot-able artifact of its own. Not a 
 
 It is the same checkpoint as `--preview-outline` (the built-in markdown outline review, since v0.6.6) in a second form: markdown for the agent to read, this HTML page for humans and screenshots. The command lives under "Advanced usage" below.
 
+## Style gallery: compare 4 covers before rendering
+
+Since v0.9, there is one more gate before the outline: the style gallery. In one line — don't make people pick a style blind. Humanize emits **≥4 cover candidates** for the primary renderer (guizang spans three Style A themes plus a Style B Swiss accent, so the four covers are visually distinct), writes one "render the cover only" command per candidate for the downstream skill to render for real, and stitches a zero-dependency `style_gallery.html` that places the 4 covers side by side to pick from. Pick one, and its re-injection command carries that style into the normal outline → brief flow.
+
+The covers are rendered downstream; Humanize emits only the spec and the commands and renders not a single pixel — consistent with its standing boundary. The commands carry a specific warning for Style A WebGL hero covers: a static PNG screenshot can capture blank (the canvas paints its first frame after load), so treat the live `cover.html` as the source of truth and a sub-20KB PNG as a failed capture, not an empty cover (see the [failure-mode catalog](references/qa-failure-modes.md)). Spec: [references/style-gallery-spec.md](references/style-gallery-spec.md).
+
+<p align="center">
+<sub>▲ Demo GIF slot: a screen recording of the style gallery + outline preview, the two zero-dependency working drafts. The generator <code>scripts/record_demo_gif.py</code> is in place; the real recording lands once the downstream skill has rendered the 4 candidate covers — empty cover slots are not staged, the same house rule as the showcase.</sub>
+</p>
+
+The command lives under "Advanced usage" below.
+
 ## 30-second start: ask your agent to install and use it
 
 If you use Codex, Claude Code, Hermes, or another Skill-aware agent, first have it install:
@@ -195,6 +207,30 @@ python3 scripts/preview_outline_html.py \
   --title "Your deck title"
 ```
 
+### Style gallery (v0.9, the cover-style gate before the outline)
+
+```bash
+python3 scripts/humanize_ppt.py \
+  --source examples/01-ai-tool-update/source.md \
+  --out .humanize-ppt-runs/ai-tool-update \
+  --title "AI 工具更新，不只是功能清单" \
+  --renderer guizang \
+  --style-gallery
+```
+
+You get `style_gallery.html` (a zero-dependency picker for the 4 covers), `style_gallery_plan.json`, and `commands/style-gallery/<id>.md` (one "cover only" command per candidate). The downstream skill renders one cover each to `outputs/style-gallery/<id>/cover.{html,png}`; open `style_gallery.html`, pick one, then run that candidate's re-injection command to resume the normal flow. `--gallery-count` defaults to 4, minimum 4, capped at the candidates defined for the renderer.
+
+### Demo GIF (working-draft recording)
+
+```bash
+python3 scripts/record_demo_gif.py \
+  --source examples/01-ai-tool-update/source.md \
+  --title "Your deck title" \
+  --out docs/showcase/demo/humanize-ppt-demo.gif
+```
+
+Records the style gallery + outline preview — the two zero-dependency working drafts — into one GIF (requires playwright + ffmpeg). The gallery covers are rendered downstream; `--covers-dir <dir>` overlays real rendered covers into the gallery before recording. Without it, the gallery records in its honest pending state — no faked thumbnails.
+
 ### After the checkup converges
 
 ```text
@@ -211,6 +247,7 @@ speaker notes + presenter shell, then deploy to GitHub Pages and give me the URL
 - **Production brief**: a single `<renderer>-production-prompt.md` for the next agent. No template copy, no `SLIDES_HERE` injection, no post-process.
 - **Presentation checkup**: compares every rendered page against its outline page, scans for failure modes (`references/qa-failure-modes.md`), writes fix prompts for the downstream skill, max 3 rounds, then `needs-human`.
 - **Outline preview**: renders the audience state-transfer map (zero-dependency single-file HTML) from `slide_plan.json` for a human pass before any render.
+- **Style gallery** (v0.9): before the outline, emits ≥4 cover candidates; the downstream skill renders one cover each; stitches a zero-dependency picker to choose a style, then a re-injection command carries the choice into the normal flow. Humanize emits only the spec/command; covers are rendered downstream.
 
 ## Good fit / Not a fit
 
