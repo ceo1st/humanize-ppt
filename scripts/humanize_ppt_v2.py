@@ -4,6 +4,7 @@ import html
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -27,6 +28,101 @@ ROLE_ARC = [
 ]
 
 BANNED_VISIBLE_PATTERNS = ["思考过程", "推理过程", "作为AI", "作为一个AI", "我将", "首先我需要"]
+
+# ---------------------------------------------------------------------------
+# v0.9: style gallery — the cover-style gate that precedes the outline.
+#
+# Humanize never renders. The gallery is a *spec*: for each candidate style
+# Humanize emits a cover-only render command (downstream renders ONLY S01 →
+# outputs/style-gallery/<id>/cover.{html,png}) plus a zero-dependency
+# style_gallery.html that stitches the rendered covers for the human to pick
+# from. After picking, the human re-runs the printed re-injection command,
+# which carries the chosen style into the normal outline → brief flow.
+#
+# Each candidate carries `cli`: the exact renderer/style args to graft onto
+# the next run. ≥4 per renderer so --gallery-count (min 4) is always satisfiable.
+# Guizang candidates span both tracks (Style A themes + Style B accent) so the
+# four covers are visually distinct, not four shades of one look.
+STYLE_GALLERY_CANDIDATES = {
+    "guizang": [
+        {
+            "id": "guizang-ink-classic",
+            "label": "墨水经典 / Ink Classic",
+            "description": "Style A · WebGL 水墨封面 · 已验证的 known-good 基线（examples/03）",
+            "cli": {"--renderer": "guizang", "--guizang-style": "A", "--guizang-theme": "ink-classic"},
+        },
+        {
+            "id": "guizang-kraft-paper",
+            "label": "牛皮纸 / Kraft Paper",
+            "description": "Style A · 暖棕纸质调 · 适合手作 / 复古 / 温度感选题",
+            "cli": {"--renderer": "guizang", "--guizang-style": "A", "--guizang-theme": "kraft-paper"},
+        },
+        {
+            "id": "guizang-indigo-porcelain",
+            "label": "靛蓝瓷 / Indigo Porcelain",
+            "description": "Style A · 蓝灰瓷面调 · 沉静、东方、适合品牌 / 文化选题",
+            "cli": {"--renderer": "guizang", "--guizang-style": "A", "--guizang-theme": "indigo-porcelain"},
+        },
+        {
+            "id": "guizang-swiss-ikb",
+            "label": "瑞士国际 · 克莱因蓝 / Swiss · IKB",
+            "description": "Style B · 16 栏网格 + 单一饱和强调色 · 静态稳定、不依赖 WebGL",
+            "cli": {"--renderer": "guizang", "--guizang-style": "B", "--guizang-accent": "ikb"},
+        },
+    ],
+    "frontend-slides": [
+        {
+            "id": "frontend-editorial-serif",
+            "label": "编辑杂志 / Editorial Serif",
+            "description": "衬线标题 + 大留白 · 长文转述、观点型选题",
+            "cli": {"--renderer": "frontend-slides", "--style-direction": "editorial-serif"},
+        },
+        {
+            "id": "frontend-techno-grid",
+            "label": "科技网格 / Techno Grid",
+            "description": "等宽字 + 暗色网格 + 强调色 · 产品 / 数据 / 工程选题",
+            "cli": {"--renderer": "frontend-slides", "--style-direction": "techno-grid"},
+        },
+        {
+            "id": "frontend-soft-gradient",
+            "label": "柔和渐变 / Soft Gradient",
+            "description": "渐变背景 + 圆角卡片 · 消费、品牌、温度感选题",
+            "cli": {"--renderer": "frontend-slides", "--style-direction": "soft-gradient"},
+        },
+        {
+            "id": "frontend-mono-contrast",
+            "label": "黑白高反差 / Mono Contrast",
+            "description": "纯黑白 + 超大字号 · 宣言、keynote、强观点开场",
+            "cli": {"--renderer": "frontend-slides", "--style-direction": "mono-contrast"},
+        },
+    ],
+    "beautiful-html-templates": [
+        {
+            "id": "beautiful-template-1",
+            "label": "候选模板 1 / Template Slot 1",
+            "description": "由 beautiful-html-templates 的原生模板库填充（占位 slug，下游选定真实模板）",
+            "cli": {"--renderer": "beautiful-html-templates", "--selected-template": "slot-1"},
+        },
+        {
+            "id": "beautiful-template-2",
+            "label": "候选模板 2 / Template Slot 2",
+            "description": "由 beautiful-html-templates 的原生模板库填充（占位 slug，下游选定真实模板）",
+            "cli": {"--renderer": "beautiful-html-templates", "--selected-template": "slot-2"},
+        },
+        {
+            "id": "beautiful-template-3",
+            "label": "候选模板 3 / Template Slot 3",
+            "description": "由 beautiful-html-templates 的原生模板库填充（占位 slug，下游选定真实模板）",
+            "cli": {"--renderer": "beautiful-html-templates", "--selected-template": "slot-3"},
+        },
+        {
+            "id": "beautiful-template-4",
+            "label": "候选模板 4 / Template Slot 4",
+            "description": "由 beautiful-html-templates 的原生模板库填充（占位 slug，下游选定真实模板）",
+            "cli": {"--renderer": "beautiful-html-templates", "--selected-template": "slot-4"},
+        },
+    ],
+}
 
 
 def now_iso():
@@ -2160,6 +2256,17 @@ def parse_args():
         action="store_true",
         help="v0.6.6: read outline-preview.md (from a prior --preview-outline run) and resume the brief write. Refuses if outline is missing or source mtime is newer.",
     )
+    ap.add_argument(
+        "--style-gallery",
+        action="store_true",
+        help="v0.9: the cover-style gate before the outline. Emits >=4 cover-only render commands + a zero-dependency style_gallery.html picker, then stops. Pick a cover, then run the printed re-injection command.",
+    )
+    ap.add_argument(
+        "--gallery-count",
+        type=int,
+        default=4,
+        help="v0.9: number of style-gallery candidates. Minimum (and default) 4; capped at the candidates defined for the renderer.",
+    )
     return ap.parse_args()
 
 
@@ -2237,6 +2344,362 @@ def _format_outline_preview(title, plan, source_path, language, style, theme, ac
     lines.append("When reviewed, re-run with `--confirm-outline` to write the production prompt.")
     lines.append("")
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# v0.9: --style-gallery — the cover-style gate that precedes the outline.
+# Spec: references/style-gallery-spec.md
+# ---------------------------------------------------------------------------
+
+
+def _style_gallery_base_command(args, source_path):
+    """The base re-run command (source/out/title) every re-injection extends.
+
+    Uses the stable entrypoint `scripts/humanize_ppt.py`. The candidate's
+    `cli` dict is appended to carry the chosen renderer + style forward into
+    the normal outline → brief flow.
+    """
+    base = ["python3", "scripts/humanize_ppt.py"]
+    if getattr(args, "research_md", None):
+        base += ["--research-md", str(source_path)]
+    else:
+        base += ["--source", str(source_path)]
+    base += ["--out", str(Path(args.out).expanduser().resolve())]
+    base += ["--title", args.title or ""]
+    return base
+
+
+def _reinjection_command(base_command, candidate):
+    """Full shell command to run AFTER a candidate cover is chosen.
+
+    base_command + the candidate's renderer/style args. The result resumes
+    the normal flow (add --preview-outline yourself if you want the review
+    checkpoint). Quoted for copy-paste safety.
+    """
+    parts = list(base_command)
+    for flag, value in candidate["cli"].items():
+        parts += [flag, value]
+    return " ".join(shlex.quote(p) for p in parts)
+
+
+def _style_gallery_cover_command_md(candidate, cover_slide, title, source_path, reinjection_cmd):
+    """Per-candidate cover-only render command for the downstream skill.
+
+    The downstream skill renders ONLY the cover (S01) in this style and writes
+    outputs/style-gallery/<id>/cover.{html,png}. Humanize never renders it.
+    """
+    renderer = candidate["cli"].get("--renderer", "guizang")
+    out_dir = f"outputs/style-gallery/{candidate['id']}"
+    cover_lines = "\n".join(f"  - {line}" for line in cover_slide.get("visible_content", []))
+    style_args = " ".join(
+        f"{flag} {value}" for flag, value in candidate["cli"].items() if flag != "--renderer"
+    )
+    # v0.9 + #5: WebGL hero covers do not survive a static PNG screenshot
+    # (the canvas paints after load → blank capture). Style A guizang covers
+    # use the WebGL hero, so the PNG can come back blank even when the live
+    # cover is correct. Tell the renderer to prefer a live cover.html and to
+    # treat a <20KB PNG as a failed capture, not an empty cover.
+    webgl_warning = ""
+    if candidate["cli"].get("--guizang-style") == "A":
+        webgl_warning = (
+            "\n## ⚠️ WebGL 封面静态截图陷阱\n\n"
+            "本候选是 Style A，封面用 WebGL hero canvas。**静态 PNG 截图会捕获到空白**"
+            "（canvas 在加载后才绘制，截图早于绘制）。\n\n"
+            "- 以 `cover.html`（活页）为准，`cover.png` 仅作缩略。\n"
+            "- 截图前等待 canvas 完成首帧（或截屏延迟 ≥1.5s）。\n"
+            "- 若 `cover.png` < 20KB，判定为截图失败而非空封面，重截或只交活页。\n"
+        )
+
+    return f"""# 风格画廊候选 · {candidate['label']}
+
+> Humanize 出 spec / command，**不自渲**。本命令只渲染封面（S01）一页，供人挑风格。
+> 下游 skill：`{renderer}`。
+
+## 任务
+
+只渲染**封面一页**（S01，hook），用下面的风格，然后写到：
+
+- `{out_dir}/cover.html` —— 活页封面（首选交付物）
+- `{out_dir}/cover.png` —— 封面缩略图（用于 style_gallery.html 缩略，可选）
+
+不要渲染整套 deck。这是选风格的门，不是成稿。
+
+## 风格
+
+- 渲染器：`{renderer}`
+- 风格参数：`{style_args or '(默认)'}`
+
+## 封面内容（来自 slide_plan S01）
+
+- 标题：{title}
+{cover_lines or '  - (无可见正文)'}
+{webgl_warning}
+## 选定本风格后
+
+挑中这张封面后，回灌以下命令把该风格带进正常的大纲 → brief 流程：
+
+```bash
+{reinjection_cmd}
+```
+
+（想先过大纲审查门，自行追加 `--preview-outline`。）
+"""
+
+
+def _render_style_gallery_html(title, primary, candidates, source_path, base_command):
+    """Zero-dependency single-file assembler that stitches candidate covers.
+
+    Each card embeds the candidate's cover.html via a relative-path iframe.
+    Honest about pending state: a card whose cover is not yet rendered shows
+    blank — the caption says so rather than faking a thumbnail (宁空不摆拍).
+    """
+    generated = now_iso()
+    cards = []
+    for c in candidates:
+        cover_rel = f"outputs/style-gallery/{c['id']}/cover.html"
+        cmd_rel = f"commands/style-gallery/{c['id']}.md"
+        reinjection = _reinjection_command(base_command, c)
+        cards.append(f"""
+      <article class="card">
+        <div class="frame">
+          <iframe src="{esc_html(cover_rel)}" title="{esc_html(c['label'])}" loading="lazy"></iframe>
+        </div>
+        <div class="card-body">
+          <div class="card-id">{esc_html(c['id'])}</div>
+          <h2>{esc_html(c['label'])}</h2>
+          <p class="desc">{esc_html(c['description'])}</p>
+          <p class="cover-note">封面 = <code>{esc_html(cmd_rel)}</code> 的渲染产物（上方空白 = 尚未渲染，或 WebGL hero 静态截图陷阱）</p>
+          <div class="cmd-label">选定后回灌命令</div>
+          <pre class="cmd">{esc_html(reinjection)}</pre>
+        </div>
+      </article>""")
+
+    return f"""<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{esc_html(title)} · 风格画廊</title>
+<style>
+  :root {{
+    --ink: #0a0a0b;
+    --paper: #f1efea;
+    --line: #d8d3c8;
+    --muted: #6b6457;
+    --accent: #b4452e;
+    --card: #fff;
+  }}
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Songti SC", "Noto Serif SC", Georgia, serif;
+    padding: 48px clamp(24px, 6vw, 96px);
+    line-height: 1.6;
+  }}
+  .kicker {{
+    font-family: "SF Mono", ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 0.18em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 12px;
+  }}
+  h1 {{ font-size: clamp(22px, 3.4vw, 34px); font-weight: 700; margin-bottom: 8px; }}
+  .meta {{
+    font-family: "SF Mono", ui-monospace, monospace;
+    font-size: 12px; color: var(--muted); margin-bottom: 28px;
+  }}
+  .grid {{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+  }}
+  .card {{
+    border: 1px solid var(--line);
+    background: var(--card);
+    display: flex; flex-direction: column;
+  }}
+  .frame {{
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: #e7e2d8;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+  }}
+  .frame iframe {{
+    width: 177.78%; height: 177.78%;
+    transform: scale(0.5625); transform-origin: top left;
+    border: 0;
+  }}
+  .card-body {{ padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 6px; }}
+  .cover-note {{
+    font-family: "SF Mono", ui-monospace, monospace;
+    font-size: 10px; color: var(--muted); margin-top: 4px;
+  }}
+  .cover-note code {{ color: var(--accent); }}
+  .card-id {{
+    font-family: "SF Mono", ui-monospace, monospace;
+    font-size: 11px; color: var(--accent); letter-spacing: 0.08em;
+  }}
+  .card h2 {{ font-size: 18px; font-weight: 700; }}
+  .desc {{ font-size: 13px; color: var(--muted); }}
+  .cmd-label {{
+    font-family: "SF Mono", ui-monospace, monospace;
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); margin-top: 8px;
+  }}
+  .cmd {{
+    font-family: "SF Mono", ui-monospace, monospace;
+    font-size: 11px; color: var(--ink);
+    background: var(--paper); border: 1px solid var(--line);
+    padding: 10px 12px; white-space: pre-wrap; word-break: break-all;
+  }}
+  footer {{
+    margin-top: 36px;
+    font-family: "SF Mono", ui-monospace, monospace;
+    font-size: 11px; color: var(--muted);
+  }}
+</style>
+</head>
+<body>
+  <div class="kicker">Humanize PPT · 风格画廊 · Cover Style Gallery</div>
+  <h1>{esc_html(title)}</h1>
+  <div class="meta">renderer: {esc_html(primary)} · candidates: {len(candidates)} · source: {esc_html(source_path)} · generated: {esc_html(generated)} · v{VERSION}</div>
+
+  <div class="grid">{''.join(cards)}</div>
+
+  <footer>
+    零依赖单文件 · 每张封面由下游 skill 真渲（commands/style-gallery/&lt;id&gt;.md）· Humanize 只出 spec / command，不渲染 PPT。<br>
+    封面空白 = 该候选尚未渲染，或 WebGL hero 静态截图陷阱（以活页 cover.html 为准）。
+  </footer>
+</body>
+</html>
+"""
+
+
+def esc_html(value):
+    """Local HTML escaper (the module imports `html`)."""
+    return html.escape(str(value if value is not None else ""), quote=True)
+
+
+def run_style_gallery_mode(args):
+    """--style-gallery: emit ≥4 cover-style candidates and a picker, then stop.
+
+    The gate before the outline. Writes per-candidate cover-only render
+    commands, a zero-dependency style_gallery.html picker, and
+    style_gallery_plan.json. No outline, no brief, no QA. Humanize never
+    renders the covers — downstream does, one cover each.
+    """
+    out = Path(args.out).expanduser().resolve()
+    out.mkdir(parents=True, exist_ok=True)
+
+    try:
+        if getattr(args, "research_md", None):
+            research_path = Path(args.research_md).expanduser().resolve()
+            if not research_path.exists():
+                sys.stderr.write(f"--research-md path not found: {research_path}\n")
+                return 2
+            source_path, text, segments = read_source(str(research_path))
+        else:
+            if not args.source:
+                sys.stderr.write("--source (or --research-md) is required for --style-gallery\n")
+                return 2
+            source_path = Path(args.source).expanduser().resolve()
+            if not source_path.exists():
+                sys.stderr.write(f"--source path not found: {source_path}\n")
+                return 2
+            source_path, text, segments = read_source(str(source_path))
+    except FileNotFoundError as e:
+        sys.stderr.write(f"Source not found: {e}\n")
+        return 2
+
+    language = detect_language(text)
+    primary, _routes = choose_routes(args, source_path, text, language)
+
+    pool = STYLE_GALLERY_CANDIDATES.get(primary)
+    if not pool:
+        sys.stderr.write(
+            f"--style-gallery has no candidate set for renderer '{primary}'. "
+            f"Supported: {', '.join(sorted(STYLE_GALLERY_CANDIDATES))}. "
+            f"Pass --renderer to one of those.\n"
+        )
+        return 2
+
+    # Minimum 4 covers (the architecture decision). --gallery-count can ask
+    # for more, capped at the candidates defined for this renderer.
+    requested = max(4, getattr(args, "gallery_count", None) or 4)
+    count = min(requested, len(pool))
+    candidates = pool[:count]
+
+    plan = build_slide_plan(args.title, text, segments, primary)
+    cover_slide = plan[0] if plan else {"title": args.title, "visible_content": []}
+
+    base_command = _style_gallery_base_command(args, source_path)
+
+    cmd_dir = out / "commands" / "style-gallery"
+    cmd_dir.mkdir(parents=True, exist_ok=True)
+    plan_entries = []
+    for c in candidates:
+        (out / "outputs" / "style-gallery" / c["id"]).mkdir(parents=True, exist_ok=True)
+        reinjection = _reinjection_command(base_command, c)
+        cmd_md = _style_gallery_cover_command_md(
+            c, cover_slide, args.title, source_path, reinjection
+        )
+        (cmd_dir / f"{c['id']}.md").write_text(cmd_md, encoding="utf-8")
+        plan_entries.append({
+            "id": c["id"],
+            "label": c["label"],
+            "description": c["description"],
+            "cli": c["cli"],
+            "command_file": f"commands/style-gallery/{c['id']}.md",
+            "cover_html": f"outputs/style-gallery/{c['id']}/cover.html",
+            "cover_png": f"outputs/style-gallery/{c['id']}/cover.png",
+            "reinjection_command": reinjection,
+        })
+
+    gallery_html = _render_style_gallery_html(
+        args.title, primary, candidates, str(source_path), base_command
+    )
+    gallery_path = out / "style_gallery.html"
+    gallery_path.write_text(gallery_html, encoding="utf-8")
+
+    gallery_plan = {
+        "version": VERSION,
+        "generated_at": now_iso(),
+        "title": args.title,
+        "source": str(source_path),
+        "language": language,
+        "primary_renderer": primary,
+        "gallery_count": len(candidates),
+        "picker": "style_gallery.html",
+        "candidates": plan_entries,
+        "next_step": (
+            "Render each cover via its command in commands/style-gallery/, open "
+            "style_gallery.html to pick, then run the chosen candidate's "
+            "reinjection_command to resume the outline → brief flow."
+        ),
+    }
+    plan_path = out / "style_gallery_plan.json"
+    plan_path.write_text(
+        json.dumps(gallery_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+    print(json.dumps(
+        {
+            "ok": True,
+            "stopped_at": "style-gallery",
+            "primary_renderer": primary,
+            "gallery_count": len(candidates),
+            "picker": str(gallery_path),
+            "gallery_plan": str(plan_path),
+            "candidates": [c["id"] for c in candidates],
+            "next_step": (
+                "Render each cover (commands/style-gallery/<id>.md), open "
+                "style_gallery.html, pick one, then run its reinjection_command."
+            ),
+        },
+        ensure_ascii=False,
+        indent=2,
+    ))
+    return 0
 
 
 def run_preview_outline_mode(args):
@@ -2364,6 +2827,12 @@ def main():
             "or pass --qa-from for QA mode\n"
         )
         return 2
+
+    # v0.9: --style-gallery is the cover-style gate that precedes the outline.
+    # It emits cover-style candidates + a picker, then stops. Checked first so
+    # it wins over --preview-outline (you pick a style, then preview the outline).
+    if getattr(args, "style_gallery", False):
+        return run_style_gallery_mode(args)
 
     # v0.6.6: --preview-outline writes outline-preview.md and stops.
     # The user reviews the outline, then re-runs with --confirm-outline.
