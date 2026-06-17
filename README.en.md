@@ -1,82 +1,74 @@
+<sub>🌐 <a href="README.md">中文</a> · <b>English</b></sub>
+
 <div align="center">
 
 # Humanize PPT
 
-## Render-QA inspector for agent-made PPTs (v0.9)
+> *A template library can spread one concept across a dozen pretty HTML pages. What you have to stand up and deliver is the line that pushes the audience forward, one page at a time.*
 
-> *Everyone is teaching AI to render beautiful slides. Nobody is watching how badly they come out.*
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-humanize--ppt-blueviolet)](SKILL.md)
+[![skills.sh](https://skills.sh/b/LearnPrompt/humanize-ppt)](https://skills.sh/LearnPrompt/humanize-ppt)
+[![Release](https://img.shields.io/github/v/release/LearnPrompt/humanize-ppt)](https://github.com/LearnPrompt/humanize-ppt/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**First half: turn raw material into an audience-aware AST outline plus per-page media decisions, and hand a production brief to a native downstream PPT skill. Second half: run the presentation checkup (演讲体检; formerly called the QA loop, the CLI flag is still `--qa-from`). The checkup does not grade beauty; it grades the outline: it compares every rendered page against its outline page, pulls out the pages that can only be looked at but not spoken from, and keeps going until every page is one you can stand up and present. Template skills own "looks good"; Humanize owns "someone checked". It never renders HTML itself.**
+**A presentation system, born for the talk.** On top of a good-looking HTML template it adds the three things templates don't handle: it uses AST (audience-state-transfer) to weave your material into a line you can *deliver*, so every page turn moves the audience forward; it gives the pages that need it real images, SVG diagrams, and Remotion video; and after rendering it runs a presentation checkup that auto-catches the pages you can only look at but not present. You walk away with a presenter mode that has a speaker script, knows its state transitions, and keeps the HTML beautiful. The beautiful deck is rendered natively by a downstream template skill — Humanize turns it into a talk you can actually give.
 
-[Live Preview](https://learnprompt.github.io/humanize-ppt/) · [Release](https://github.com/LearnPrompt/humanize-ppt/releases) · [MIT License](LICENSE)
-
-[中文](README.md) · [AST Theory](docs/AST-theory.md) · [v0.9 Release Notes](docs/versions/v0.9.0-style-gallery.md)
+[Install in 30s](#install-in-30s) · [Use it in one line](#use-it-in-one-line) · [See it](#see-it) · [What it solves](#what-it-solves) · [Presentation checkup](#presentation-checkup) · [Visual enhancement](#visual-enhancement) · [English path](#english-path) · [AST](docs/AST-theory.md)
 
 </div>
 
 ---
 
-## Showcase
+## Install in 30s
 
-### Chinese route: rendered natively by guizang-ppt-skill
+Have your agent (Codex / Claude Code / Hermes …) install Humanize PPT — simplest is to hand it the GitHub link:
 
-<p align="center">
-  <img src="examples/03-codex-guizang-native-ink-classic/preview-slide-01.png" width="32%" />
-  <img src="examples/03-codex-guizang-native-ink-classic/preview-slide-05.png" width="32%" />
-  <img src="examples/03-codex-guizang-native-ink-classic/preview-slide-10.png" width="32%" />
-</p>
+```text
+Please install the Humanize PPT Skill: https://github.com/LearnPrompt/humanize-ppt
+```
 
-<p align="center"><sub>
-▲ Verified known-good Guizang Ink Classic sample (10 slides, 86 data-anim, WebGL hero). Humanize wrote the brief and ran the checkup; guizang-ppt-skill rendered natively.
-</sub></p>
+Or one line of npx:
 
-### English route: rendered natively by beautiful-html-templates, full presentation checkup on 2026-06-13
+```bash
+npx skills add LearnPrompt/humanize-ppt -g
+```
 
-<p align="center">
-  <img src="docs/showcase/hermes-agent-mastery/en/ppt/assets/en-preview-slide-01.png" width="49%" />
-  <img src="docs/showcase/hermes-agent-mastery/en/ppt/assets/en-preview-slide-02.png" width="49%" />
-</p>
+Claude Code users can use the plugin marketplace (auto-updates):
 
-<p align="center"><sub>
-▲ Hermes Agent Mastery English deck (Neo-Grid Bold, 11 slides), rendered natively by beautiful-html-templates. This deck went through a real presentation checkup: the static scan passed, then the page-by-page screenshot review caught the page-number badge cutting the last line of body text on 9 pages (the audience would see broken sentences); after the fix, the re-check passed. Round-by-round record:
-<a href="docs/showcase/hermes-agent-mastery/en/qa/presentation-checkup-2026-06-13.md">checkup record</a>.
-</sub></p>
+```text
+/plugin marketplace add LearnPrompt/humanize-ppt
+/plugin install humanize-ppt
+```
 
-Humanize PPT does not compete with template skills. It is a **render-QA inspector**: in the first half it orchestrates the brief, turning source material into an AST outline plus per-page media decisions (image / SVG diagram / Remotion video / nothing) and writing a `<renderer>-production-prompt.md` for a downstream PPT skill to render 100% natively. In the second half it runs the presentation checkup, comparing every rendered page against its outline page and writing fix prompts for the downstream skill, capped at 3 rounds. It does **not** render HTML itself.
+**To run the whole flow, install this set of downstream skills too** (Humanize writes the outline and decisions; they render and produce assets):
 
-## The presentation checkup: pulling out pages you can look at but cannot present
+| Skill | Role | Source |
+|---|---|---|
+| `guizang-ppt-skill` | Chinese deck native render (magazine / Swiss) | [op7418/guizang-ppt-skill](https://github.com/op7418/guizang-ppt-skill) |
+| `frontend-slides` | English deck native render (viewport-safe HTML) | [zarazhangrui/frontend-slides](https://github.com/zarazhangrui/frontend-slides) |
+| `beautiful-html-templates` | English deck multi-template render | [zarazhangrui/beautiful-html-templates](https://github.com/zarazhangrui/beautiful-html-templates) |
+| `remotion-video-toolkit` | Per-page explainer video (real mp4) | Remotion |
+| `baoyu-image-gen` | Images via the local Codex CLI (**no API key**) | [JimLiu/baoyu-skills](https://github.com/JimLiu/baoyu-skills/tree/main/skills/baoyu-image-gen) |
 
-First, what counts as a failed page, in plain words. A page that holds only a few words and never finishes the point it was supposed to make; or a page that fails the audience state transfer it promised, so the listener walks out of that page in the same state they walked in. Such a page should not exist. It is easy to get seduced by the variety of HTML styles and end up with pages that contain almost nothing: that is HTML made for looking at. We are making PPTs for presenting. The presentation checkup exists to pull those pages out and generate fix instructions so the downstream skill can re-render them.
+One line to the agent: "Install humanize-ppt and its recommended downstream skills (guizang-ppt-skill, frontend-slides, beautiful-html-templates, remotion-video-toolkit, baoyu-image-gen)."
 
-What the checkup compares against: not beauty, but the outline. The first half of Humanize produced an outline that states each page's intent and audience state transfer; the checkup walks the rendered deck page by page against it. The failure-mode catalog lives in [references/qa-failure-modes.md](references/qa-failure-modes.md); every mode states what the audience would see, for example placeholder residue means the audience sees literal lorem or TODO text on a live slide.
+## Use it in one line
 
-Real case (2026-06-13, the English deck above): after the static scan passed, the screenshot review found the page-number badge covering the last line of body text on 9 pages, so the audience would read fragments like "uires confirmation." That is exactly a page you can look at but cannot present. The fix kept the deck's visual system and only reserved clearance for the covered text; the re-check passed. Full round log: [checkup record](docs/showcase/hermes-agent-mastery/en/qa/presentation-checkup-2026-06-13.md).
+Once installed, run the whole flow with one message — copy-paste it to your agent:
 
-| Before: the badge eats the body text | After: every word is presentable |
-|---|---|
-| ![Before the checkup, the page badge covers the body text, leaving the fragment "uires confirmation."](docs/showcase/hermes-agent-mastery/en/ppt/assets/qa-before-s05.png) | ![After the checkup, "What requires confirmation." is fully visible](docs/showcase/hermes-agent-mastery/en/ppt/assets/qa-after-s05.png) |
+```text
+Use humanize-ppt to turn this material into an English presentation deck: produce
+the AST outline and per-page intent, render natively with frontend-slides (or
+beautiful-html-templates), use baoyu-image-gen for images and remotion for video,
+then run the presentation checkup and tell me which pages can't be presented, and
+finish with presenter mode.
+```
 
-<sub>▲ Bottom-left corner of the same slide S05: "uires confirmation." before, the full "What requires confirmation." after. Not a single pixel of the visual system changed.</sub>
+For Chinese, swap in "Chinese + guizang-ppt-skill". CLI flags, staged control, and re-injection commands live in [Advanced usage](#advanced-usage) below — beginners can skip them.
 
-## Outline preview: see the audience state arc before rendering
+## See it
 
-Since v0.7.0, Humanize has its first screenshot-able artifact of its own. Not a deck (rendering stays downstream), but the inspector's worksheet: an audience state-transfer map. Input `slide_plan.json`, output a single-file zero-dependency HTML page, one row per slide ("slide id → state the audience walks in with → page intent → state they walk out with"), with a one-line state-arc summary on top. Five minutes of human review before any render happens.
-
-<p align="center">
-  <img src="examples/04-preview-outline-ai-tool-update/preview-outline.png" width="92%" />
-</p>
-
-<p align="center"><sub>
-▲ Real artifact: <code>examples/01-ai-tool-update/source.md</code> run through brief mode produced the <code>slide_plan.json</code>; <code>scripts/preview_outline_html.py</code> rendered the map. Files live in <code>examples/04-preview-outline-ai-tool-update/</code>.
-</sub></p>
-
-It is the same checkpoint as `--preview-outline` (the built-in markdown outline review, since v0.6.6) in a second form: markdown for the agent to read, this HTML page for humans and screenshots. The command lives under "Advanced usage" below.
-
-## Style gallery: compare 4 covers before rendering
-
-Since v0.9, there is one more gate before the outline: the style gallery. In one line — don't make people pick a style blind. Humanize emits **≥4 cover candidates** for the primary renderer (guizang spans three Style A themes plus a Style B Swiss accent, so the four covers are visually distinct), writes one "render the cover only" command per candidate for the downstream skill to render for real, and stitches a zero-dependency `style_gallery.html` that places the 4 covers side by side to pick from. Pick one, and its re-injection command carries that style into the normal outline → brief flow.
-
-The covers are rendered downstream; Humanize emits only the spec and the commands and renders not a single pixel — consistent with its standing boundary. The commands carry a specific warning for Style A WebGL hero covers: a static PNG screenshot can capture blank (the canvas paints its first frame after load), so treat the live `cover.html` as the source of truth and a sub-20KB PNG as a failed capture, not an empty cover (see the [failure-mode catalog](references/qa-failure-modes.md)). Spec: [references/style-gallery-spec.md](references/style-gallery-spec.md).
+### Style gallery: downstream renders 4 covers before the outline, so you can pick
 
 <p align="center">
   <img src="docs/showcase/v0.9-style-gallery/covers/guizang-ink-classic.png" width="24%" />
@@ -86,118 +78,79 @@ The covers are rendered downstream; Humanize emits only the spec and the command
 </p>
 
 <p align="center"><sub>
-▲ Real artifacts: four covers of the same deck, rendered natively by guizang-ppt-skill — Ink Classic / Kraft Paper / Indigo Porcelain (Style A) + Swiss Klein Blue (Style B), four distinct looks. Humanize emits only the spec/command; the covers are rendered downstream.
+▲ Four covers of the same deck, rendered natively by guizang-ppt-skill — Ink Classic / Kraft Paper / Indigo Porcelain (Style A) + Swiss Klein Blue (Style B). Humanize emits the spec/command; covers are rendered downstream.
 </sub></p>
 
+### Visual enhancement: images and video are real output, and they move
+
 <p align="center">
-  <img src="docs/showcase/v0.9-style-gallery/style-gallery-picker.png" width="80%" />
+  <img src="docs/showcase/v0.9-visual-enhancement/assets/s01-image.png" width="49%" />
+  <img src="docs/showcase/v0.9-visual-enhancement/assets/s04-video.gif" width="49%" />
 </p>
 
 <p align="center"><sub>
-▲ The zero-dependency <code>style_gallery.html</code> places the 4 covers side by side, each with its description and re-injection command. Pick one and run its command to carry the style into the normal outline → brief flow. For a motion recording, use <code>scripts/record_demo_gif.py</code> (see "Advanced usage").
+▲ Left: hero image, generated by <code>baoyu-image-gen</code> via the local Codex CLI (gpt-image, no API key). Right: a per-page explainer, a real Remotion-rendered mp4 (shown as a GIF here so you can see it move). Per-slot log: <a href="docs/showcase/v0.9-visual-enhancement/media-production-2026-06-17.md">production record</a>.
 </sub></p>
 
-The command lives under "Advanced usage" below.
+### Presentation checkup: auto-catch covered text
 
-## Visual enhancement: images, diagrams, video — all real output
-
-The second core capability. Humanize decides per page whether it needs an image / SVG diagram / video and writes it into `slide_plan.json`'s `media` slots (with `asset_path` + `prompt_hint`); the downstream skill produces the real file at that path — Humanize decides *what* and *where*, and renders nothing itself.
-
-<p align="center">
-  <img src="docs/showcase/v0.9-visual-enhancement/contact-sheet.png" width="92%" />
-</p>
+| Before: page badge eats the body text | After: every word is presentable |
+|---|---|
+| ![Before, the page badge covers the body, leaving "uires confirmation."](docs/showcase/hermes-agent-mastery/en/ppt/assets/qa-before-s05.png) | ![After, "What requires confirmation." is fully visible](docs/showcase/hermes-agent-mastery/en/ppt/assets/qa-after-s05.png) |
 
 <p align="center"><sub>
-▲ Real output: the 8 media slots of one deck — 4 deterministic inline SVG diagrams/images (svg-html) + 2 real Remotion-rendered mp4s (10s / 8s deterministic loops, no narration) + 1 real UI screenshot. The gpt-photo synthesized image needs `OPENAI_API_KEY` (unset here), so it stays an executable task rather than a faked PNG. Per-slot log: <a href="docs/showcase/v0.9-visual-enhancement/media-production-2026-06-17.md">production record</a>.
+▲ Real case (2026-06-13 English deck): static scan passed, but the per-page screenshot review found a page-number badge covering body text on 9 pages — the audience would read "uires confirmation." Caught automatically, fix prompt emitted, re-check passed — no more hunting page numbers by hand with Codex. <a href="docs/showcase/hermes-agent-mastery/en/qa/presentation-checkup-2026-06-13.md">Round log</a> · <a href="https://learnprompt.github.io/humanize-ppt/">Browse the deck</a>
 </sub></p>
 
-## 30-second start: ask your agent to install and use it
+## What it solves
 
-If you use Codex, Claude Code, Hermes, or another Skill-aware agent, first have it install:
+I give a fair number of talks. Every time I reached for one of those gorgeous HTML PPT skills I hit the same wall: **they're built for concept display** — a single idea balloons into a dozen pages, but a 90-minute talk tops out around thirty. The pretty shell runs ahead of the content density; the pages look great and the line doesn't hold.
 
-```text
-Please install the Humanize PPT Skill: https://github.com/LearnPrompt/humanize-ppt
-```
+Humanize PPT fills that gap. It doesn't take over the template's "renders beautifully" job — it turns *beautiful* into *deliverable*:
 
-Then drive it in three steps, one plain sentence each, copy-paste ready.
+1. **AST outline — every page turn teaches the audience something.** AST = Audience-State-Transfer. I fed an AI 70+ TED talks and had it distill how a talk carries an audience forward, page by page. Humanize weaves your material into that line: each turn should move the audience to understand a concept, not pile on information.
+2. **Visual enhancement — the pages that need a picture get a real one.** Per page it decides image / SVG diagram / video and hands the plan to downstream: images via `baoyu-image-gen` (local Codex CLI, no key), video via Remotion, data figures as deterministic SVG. Both the Chinese (guizang) and English paths have image generation wired in.
+3. **Automatic presentation checkup — stop hunting for the broken page.** Text covered by a badge used to mean a back-and-forth with Codex to find which page. Better to let the checkup scan it all at once after render and tell you which page, what's wrong, how to fix.
+4. **Presenter mode — what ships is something you can take on stage.** Human feel, a speaker script, the state transition per page, and the HTML beauty kept intact.
 
-**Chinese deck (recommended renderer: guizang-ppt-skill):**
+The boundary is clear: **the full beautiful deck is rendered natively by the downstream template skill**; Humanize doesn't copy its template or touch the rendered HTML. Humanize directs the talk; the template paints each page.
 
-Step 1:
+## Presentation checkup
 
-```text
-Turn this material into a Chinese presentation deck. Start with humanize-ppt to produce the outline and each page's intent.
-```
+First, what a failed page is: one with only a few words that never finishes its point; or one that doesn't complete the audience state transfer it promised, so the listener leaves it in the same state they arrived. Such pages shouldn't exist. HTML's variety is seductive — it's easy to ship a deck where a page says nothing. That's made for looking at, not presenting.
 
-Step 2:
+The checkup grades the outline, not the beauty: it diffs each rendered page against its outline page. The failure-mode catalog is in [references/qa-failure-modes.md](references/qa-failure-modes.md) ([中文](references/qa-failure-modes.md)), each mode with "what the audience sees." Things the static scan can't catch (text overflow, badge occlusion, the WebGL-cover static-screenshot trap) are honestly listed as "can't catch yet" and backstopped by screenshot review — leave it empty before staging a fake.
 
-```text
-Following that outline, render the deck with guizang-ppt-skill.
-```
+## Visual enhancement
 
-Step 3:
+Humanize decides per page whether it needs an image / SVG diagram / video and writes it into `slide_plan.json`'s `media` slots (with `asset_path` + `prompt_hint`); the downstream skill produces the real file at that path. The generator is hot-pluggable; recommended:
 
-```text
-After rendering, run the presentation checkup. Tell me which pages can only be looked at but not presented, and give me the fix instructions.
-```
+- **image**: `baoyu-image-gen` via the **local Codex CLI** (`--provider codex-cli`, uses the logged-in ChatGPT subscription, **no OPENAI_API_KEY**). Use it for atmospheric / concept / hero visuals — pretty and key-free; keep precise-text or data figures as deterministic SVG (image models garble exact labels).
+- **video**: Remotion renders a `duration_s`-second deterministic loop (no narration).
+- **diagram**: deterministic inline SVG / HTML, zero dependency, no external call.
 
-**English deck (recommended renderer: frontend-slides or beautiful-html-templates):**
+v0.9 filled all 8 media slots of one deck with real assets ([production record](docs/showcase/v0.9-visual-enhancement/media-production-2026-06-17.md)): a real codex hero image + 2 real Remotion mp4s + a real screenshot + deterministic SVGs — proving the slots are real tasks and every generator class plugs in.
 
-Step 1:
+## Style gallery
 
-```text
-Turn this material into an English presentation deck. Start with humanize-ppt to produce the outline and each page's intent.
-```
+Don't make people pick a style blind. `--style-gallery` stops before the outline, emits ≥4 cover candidates, writes one "cover only" render command per candidate for the downstream skill, and stitches a zero-dependency `style_gallery.html` to pick from. Pick one and its re-injection command carries the style into the normal flow. Covers are rendered downstream; Humanize emits only the spec/command. Spec: [references/style-gallery-spec.md](references/style-gallery-spec.md).
 
-Step 2:
+## Outline preview
 
-```text
-Following that outline, render the deck with frontend-slides or beautiful-html-templates.
-```
+Since v0.7 Humanize has its own screenshot-able working draft (not a deck): the audience state-transfer map. Input `slide_plan.json`, output a zero-dependency HTML page — one row per slide ("page → state the audience walks in with → page intent → state they walk out with") plus a top-line state arc. Five minutes before rendering to spot which page stalls.
 
-Step 3:
+<p align="center">
+  <img src="examples/04-preview-outline-ai-tool-update/preview-outline.png" width="92%" />
+</p>
 
-```text
-After rendering, run the presentation checkup. Tell me which pages can only be looked at but not presented, and give me the fix instructions.
-```
+## Presenter mode
 
-Keep the one-liner in mind: the checkup does not grade beauty, it grades the outline. It compares every rendered page against its outline page, pulls out the pages that can only be looked at but not spoken from, until every page is one you can stand up and present.
+What ships is a talk you can take on stage, not a stack of static pages: per-page speaker script, state transitions, HTML beauty kept. **This step is produced natively by the downstream skill** — Humanize emits `speaker_intent.md` (the semantic source for the script) and, in the brief, directs downstream to build the presenter shell / speaker notes / deploy. Humanize owns "what each page says"; the template owns "how the presenter renders."
 
-If your agent needs an explicit install command, ask it to run:
-
-```bash
-npx skills add LearnPrompt/humanize-ppt -g
-```
+## Advanced usage
 
 <details>
-<summary><b>Advanced usage</b> (CLI flags, style selection, fix-prompt details; beginners can skip all of this)</summary>
-
-### Full task template for the agent
-
-```text
-Please install and use the Humanize PPT Skill (v0.9+):
-https://github.com/LearnPrompt/humanize-ppt
-
-I want to create a presentation. Follow these three steps. Do NOT let Humanize
-render any HTML itself — that's the downstream skill's job.
-
-1. Use Humanize PPT to produce the AST outline + per-page media decisions
-   (image / SVG / Remotion video). It writes a <renderer>-production-prompt.md.
-
-2. Take that prompt and invoke the downstream skill to render natively:
-   - Chinese: guizang-ppt-skill, following the Style (A/B) in the prompt
-   - English: frontend-slides or beautiful-html-templates, with their own
-     template selection + full deck
-
-3. After the deck is rendered, run the Humanize PPT presentation checkup:
-   python3 scripts/humanize_ppt.py --qa-from <rendered.html> --out <out> \
-     --renderer guizang --guizang-style A --max-qa-iterations 3
-   Max 3 rounds. Converge = done. If still failing, send the fix_prompt.md
-   back to the downstream skill to re-render.
-
-4. After the checkup passes, let the downstream skill produce its native
-   speaker notes + presenter shell + deploy. Humanize does not own those.
-```
+<summary><b>CLI flags, staged control, style selection, fix-prompt details</b> (beginners can skip)</summary>
 
 ### Brief mode (default)
 
@@ -206,204 +159,101 @@ python3 scripts/humanize_ppt.py \
   --source examples/01-ai-tool-update/source.md \
   --out .humanize-ppt-runs/ai-tool-update \
   --title "AI 工具更新，不只是功能清单" \
-  --renderer guizang \
-  --guizang-style A
+  --renderer guizang --guizang-style A --guizang-theme ink-classic
 ```
 
-You get `guizang-production-prompt.md`. **No** `outputs/guizang/index.html` is produced. Hand the prompt to `guizang-ppt-skill` to render. For English routes, set `--renderer` to `frontend-slides` or `beautiful-html-templates`.
+Produces `guizang-production-prompt.md` for `guizang-ppt-skill` to render. For English, set `--renderer` to `frontend-slides` or `beautiful-html-templates`.
 
-### Presentation checkup mode (post-render; the CLI flag is `--qa-from`)
+### Style gallery (cover gate before the outline)
 
 ```bash
-python3 scripts/humanize_ppt.py \
-  --qa-from .humanize-ppt-runs/ai-tool-update/rendered/index.html \
-  --out .humanize-ppt-runs/ai-tool-update \
-  --renderer guizang \
-  --guizang-style A \
-  --max-qa-iterations 3
+python3 scripts/humanize_ppt.py --source examples/01-ai-tool-update/source.md \
+  --out .humanize-ppt-runs/ai-tool-update --title "..." --renderer guizang --style-gallery
 ```
 
-You get `outputs/qa/qa_report.md` / `fix_prompt.md` / `qa_iteration.json`. After 3 rounds with remaining failures → `needs-human`. `fix_prompt.md` is downstream-skill-actionable: hand it back for a native re-render; never post-process the HTML in Humanize.
+Produces `style_gallery.html` + `style_gallery_plan.json` + one "cover only" command per candidate. `--gallery-count` defaults to 4, min 4.
 
-### Outline preview (audience state-transfer map)
+### Presentation checkup (after rendering)
 
 ```bash
+python3 scripts/humanize_ppt.py --qa-from <rendered.html> \
+  --out <prior out dir> --renderer guizang --guizang-style A --max-qa-iterations 3
+```
+
+Produces `qa_report.md` / `fix_prompt.md` / `qa_iteration.json`, capped at 3 rounds, `needs-human` if not converged. `fix_prompt.md` goes back to the downstream skill — never post-process the HTML in Humanize.
+
+### Image / video / outline preview
+
+```bash
+# image: local Codex CLI, no key
+bun ~/.agents/skills/baoyu-image-gen/scripts/main.ts \
+  --prompt "..." --image assets/s01-image.png --provider codex-cli --ar 16:9
+
+# outline preview (audience state-transfer map)
 python3 scripts/preview_outline_html.py \
-  --slide-plan <out>/slide_plan.json \
-  --out <out>/preview-outline.html \
-  --title "Your deck title"
-```
+  --slide-plan <out>/slide_plan.json --out <out>/preview-outline.html --title "..."
 
-### Style gallery (v0.9, the cover-style gate before the outline)
-
-```bash
-python3 scripts/humanize_ppt.py \
-  --source examples/01-ai-tool-update/source.md \
-  --out .humanize-ppt-runs/ai-tool-update \
-  --title "AI 工具更新，不只是功能清单" \
-  --renderer guizang \
-  --style-gallery
-```
-
-You get `style_gallery.html` (a zero-dependency picker for the 4 covers), `style_gallery_plan.json`, and `commands/style-gallery/<id>.md` (one "cover only" command per candidate). The downstream skill renders one cover each to `outputs/style-gallery/<id>/cover.{html,png}`; open `style_gallery.html`, pick one, then run that candidate's re-injection command to resume the normal flow. `--gallery-count` defaults to 4, minimum 4, capped at the candidates defined for the renderer.
-
-### Demo GIF (working-draft recording)
-
-```bash
-python3 scripts/record_demo_gif.py \
-  --source examples/01-ai-tool-update/source.md \
-  --title "Your deck title" \
-  --out docs/showcase/demo/humanize-ppt-demo.gif
-```
-
-Records the style gallery + outline preview — the two zero-dependency working drafts — into one GIF (requires playwright + ffmpeg). The gallery covers are rendered downstream; `--covers-dir <dir>` overlays real rendered covers into the gallery before recording. Without it, the gallery records in its honest pending state — no faked thumbnails.
-
-### After the checkup converges
-
-```text
-After the checkup converges, ask the downstream skill to produce its native
-speaker notes + presenter shell, then deploy to GitHub Pages and give me the URL.
+# demo GIF (record the working drafts into a moving GIF)
+python3 scripts/record_demo_gif.py --source examples/01-ai-tool-update/source.md \
+  --title "..." --out docs/showcase/demo.gif --covers-dir <real-covers-dir>
 ```
 
 </details>
 
 ## What it does
 
-- **AST outline**: audience, state transfer, slide intent, speaking rhythm.
-- **Per-page media decision**: which page wants an image, a system diagram, a 10-second process clip, nothing.
-- **Production brief**: a single `<renderer>-production-prompt.md` for the next agent. No template copy, no `SLIDES_HERE` injection, no post-process.
-- **Presentation checkup**: compares every rendered page against its outline page, scans for failure modes (`references/qa-failure-modes.md`), writes fix prompts for the downstream skill, max 3 rounds, then `needs-human`.
-- **Outline preview**: renders the audience state-transfer map (zero-dependency single-file HTML) from `slide_plan.json` for a human pass before any render.
-- **Style gallery** (v0.9): before the outline, emits ≥4 cover candidates; the downstream skill renders one cover each; stitches a zero-dependency picker to choose a style, then a re-injection command carries the choice into the normal flow. Humanize emits only the spec/command; covers are rendered downstream.
+- **AST outline**: audience, state transfer, page intent, speaking rhythm — every turn moves understanding forward.
+- **Visual enhancement**: per-page image / SVG / video, produced downstream via baoyu-image-gen / Remotion / deterministic SVG.
+- **Style gallery**: ≥4 cover candidates before the outline, each rendered downstream, picked in a zero-dependency gallery.
+- **Outline preview**: the audience state-transfer map from `slide_plan.json`, reviewed before any render.
+- **Presentation checkup**: per-page outline diff after render, scans failure modes, writes fix prompts, capped at 3 rounds.
+- **Presenter mode**: speaker-script semantic source + brief directs downstream to build the presenter / deploy.
 
-## Good fit / Not a fit
+## How it differs
 
-Good fit:
-
-- You have source material, a topic, or a rough outline, and need an AST outline plus per-page media decisions plus a brief handoff to a native downstream skill.
-- You want someone to walk the rendered deck page by page: which page never finished its point, which page failed its audience state transfer.
-- You want Chinese decks on `guizang-ppt-skill` and English decks on `frontend-slides` / `beautiful-html-templates`: the two routes we have actually run end to end with stable output.
-- You want Humanize to be immune to downstream skill updates: it only writes briefs, never imitates templates.
-
-Not a fit:
-
-- You only need a one-off template library. Pick whichever need you have: if all you want is one beautiful template page, with no outline and no presentation checkup, just use a rendering skill directly.
-- You expect Humanize to render HTML itself. (Deliberately not, since v0.6.4: the downstream skill is the renderer.)
-- You do not yet know the audience, topic, or delivery setting.
-
-## Routes: hot-pluggable, broadly compatible, two recommendations
-
-The Humanize brief is plain markdown + JSON; anything can read it. So Humanize is **broadly compatible with any downstream skill that can produce an HTML PPT**: if a skill can render an HTML deck from the brief, Humanize can write the brief before it and run the presentation checkup after it. Downstream renderers are hot-pluggable; there is no binding.
-
-On top of that, we mark the routes we have **actually run end to end with stable output** as recommendations:
-
-- **One Chinese recommendation**: `guizang-ppt-skill` (brief exit + presentation checkup both verified on real rendered output; support_level `full`)
-- **One English recommendation**: `frontend-slides` / `beautiful-html-templates` (both completed a full presentation checkup on a real deck, support_level `brief+qa-verified` — beautiful on 2026-06-13, frontend-slides on 2026-06-17)
-
-Other downstreams are welcome: feed the brief to any rendering skill, and if it works, open an issue. We update `support_level` in `registry/renderer_registry.json` based on real results.
-
-The workflow has four stages O / P / Q / C:
-
-- **O — Outline + Per-Page Media Direction** (Humanize): raw material → AST outline + per-page image / video decision
-- **P — Native Renderer Invocation** (downstream skill 100%): Chinese recommendation `guizang-ppt-skill`, English recommendation `frontend-slides` / `beautiful-html-templates`, others hot-pluggable
-- **Q — Presentation checkup** (Humanize; the CLI flag is `--qa-from`): compare pages against the outline → write `fix_prompt.md` → wait for downstream re-render → converge, max 3 rounds
-- **C — Complete** (downstream skill native): speaker notes / presenter shell / static deploy — **not owned by Humanize**
-
-**Media boundary:** video and motion material is decided in `slide_plan.json`'s `media.video` field and `video_slots.json` — those decision fields stay. But the **media pipeline itself is downstream-owned**: Remotion / HyperFrames rendering, static fallbacks, and embedding are the downstream skill's job. This repo does not fix, take over, or verify that pipeline.
-
-## English path, stated honestly
-
-Matching the `support_level` field in `registry/renderer_registry.json`:
-
-| Renderer | support_level | What it actually means |
+| | Template skill alone | **Humanize PPT** |
 |---|---|---|
-| `guizang-ppt-skill` (Chinese) | `full` | Both the brief exit and the presentation checkup are verified on real rendered output; the failure-mode catalog has 7 guizang rules |
-| `beautiful-html-templates` (English) | `brief+qa-verified` | Brief exit works; on 2026-06-13 a full presentation checkup ran on the real Neo-Grid deck at `docs/showcase/hermes-agent-mastery/en/ppt/` (scan → badge-overlap finding on 9 pages → fix → re-check pass, [round log](docs/showcase/hermes-agent-mastery/en/qa/presentation-checkup-2026-06-13.md)); still 0 renderer-specific failure-mode rules, so not `full` |
-| `frontend-slides` (English) | `brief+qa-verified` | Brief exit works; on 2026-06-17 the first real frontend-slides deck (`docs/showcase/v0.9-frontend-slides/ppt/`, 5-slide single-file zero-dep) went through the checkup: static scan pass + negative control + per-page screenshot review ([round log](docs/showcase/v0.9-frontend-slides/qa/presentation-checkup-2026-06-17.md)); still 0 renderer-specific failure-mode rules, so same tier as beautiful, not `full` |
+| Start | Material straight into a template | Ask who the audience is and what state they should leave in (AST) |
+| Density | One idea spread over a dozen pretty pages | Woven into a deliverable line, each page moving the state |
+| Assets | Whatever the template ships | Per-page image/SVG/video decided and handed downstream |
+| Render | Renders itself | Native downstream render, zero imitation |
+| Quality | Ships on render | Automatic presentation checkup, 3 rounds, fix prompts |
 
-This is a measurement table, not a promise table: every cell must be backed by real rendered output. Empty cells stay empty; nothing is staged.
+In a line: the template renders beautifully; Humanize makes it deliverable, watched, and stage-ready. Upstream and downstream, not competitors.
+
+## English path
+
+The Humanize brief is plain markdown + JSON, so it's **broadly compatible with any HTML-PPT skill**. Both the Chinese and English routes have been through a real presentation checkup:
+
+| Renderer | Status | Verified |
+|---|---|---|
+| `guizang-ppt-skill` (Chinese) | full chain | brief + checkup on real rendered output; 7 guizang-specific failure-mode rules |
+| `beautiful-html-templates` (English) | full chain | brief exit + a full checkup on a real Neo-Grid deck on 2026-06-13 (found a badge covering 9 pages → fixed → re-check passed, [log](docs/showcase/hermes-agent-mastery/en/qa/presentation-checkup-2026-06-13.md)) |
+| `frontend-slides` (English) | full chain | brief exit + a full checkup on a real 5-page deck on 2026-06-17 (scan pass + negative control + screenshot review, [log](docs/showcase/v0.9-frontend-slides/qa/presentation-checkup-2026-06-17.md)) |
+
+English and Chinese are the same tier: brief exit works + checkup verified on real output + image generation wired in. The only difference is the count of renderer-specific failure-mode rules — guizang has accumulated 7 Style A/B rules; the English pair currently lean on the renderer-agnostic rules (placeholder residue, etc.) plus screenshot review, with specific rules still accruing from real output. This is a measurement table, not a promise table: every cell is backed by real rendered output, matching `support_level` in `registry/renderer_registry.json`.
 
 ## Why AST
 
-Humanize PPT uses AST theory:
-
-- **Audience**: who is listening, what they know, and what they resist;
-- **State**: where the audience starts and where the deck should move them;
-- **Transfer**: how each slide moves the audience forward.
-
-Core idea:
+- **Audience**: who's listening, what they know, what they resist.
+- **State**: where they start, where the deck should move them.
+- **Transfer**: how each page drives that transfer.
 
 > PPT is not an information container. PPT is an audience state-transfer artifact.
 
-## No-dependency smoke check
+See [AST Theory](docs/AST-theory.md), [SPEC.md](SPEC.md), [v0.9 Release Notes](docs/versions/v0.9.0-style-gallery.md).
 
-If pytest is unavailable, run the stdlib-only smoke check:
+## Safety
 
-```bash
-python3 scripts/smoke_check.py
-```
-
-It runs the stable entrypoint through a minimal path that does not require an external template library, then checks for:
-
-```text
-deck_brief.md
-ast_outline.md
-slide_plan.json
-router_plan.json
-run_manifest.json
-outputs/qa/qa_report.md
-guizang-production-prompt.md    ← v0.6.4 new: must exist
-outputs/guizang/index.html       ← v0.6.4 new: must NOT exist
-```
-
-See [docs/smoke-test.md](docs/smoke-test.md).
-
-## Output shape
-
-A brief-mode run produces:
-
-```text
-out/
-  deck_brief.md
-  ast_outline.md
-  slide_plan.json            ← per-page media: {image, diagram, video} + layout_hint
-  speaker_intent.md
-  asset_manifest.md          ← derived from media
-  video_slots.json           ← derived from media.video
-  style_brief.md
-  renderer_registry.json
-  router_plan.json
-  run_manifest.json
-  guizang-production-prompt.md       ← v0.6.4 primary deliverable
-  commands/
-    guizang-agent.md
-  outputs/
-    qa/
-      qa_report.md           ← first-pass gate
-```
-
-Presentation-checkup mode (CLI `--qa-from`) appends `fix_prompt.md` and `qa_iteration.json` to `outputs/qa/`, max 3 rounds.
-
-## Current boundaries
-
-- Recommended entrypoint: `scripts/humanize_ppt.py` (outline preview: `scripts/preview_outline_html.py`)
-- Historical version notes: `docs/versions/` (why v0.9: `docs/versions/v0.9.0-style-gallery.md`)
-- Plans and reviews: `docs/plans/`
-- Safe sample inputs: `examples/`
-- Chinese known-good: `examples/03-codex-guizang-native-ink-classic/`
-- English checked-up sample: `docs/showcase/hermes-agent-mastery/en/`
-- Renderer support levels: `support_level` in `registry/renderer_registry.json` (see the table above)
+- Never copies or post-processes the downstream skill's rendered HTML; render problems always become a fix prompt sent back downstream;
+- All-local scripts, zero API, zero key (images use the local Codex CLI subscription); no material content leaves the machine;
+- The checkup stops at 3 rounds and flags `needs-human` rather than retrying forever;
+- No private paths, accounts, or credentials in the brief or examples.
 
 ## Reference
 
-Humanize PPT is shaped by these projects and operating rules:
-
-- [op7418/guizang-ppt-skill](https://github.com/op7418/guizang-ppt-skill): stable Chinese deck production, Swiss visual constraints, material QA. **Humanize invokes it 100% natively; it never copies its template.**
-- [zarazhangrui/beautiful-html-templates](https://github.com/zarazhangrui/beautiful-html-templates): English multi-style candidates and selected-template full deck production.
-- [zarazhangrui/frontend-slides](https://github.com/zarazhangrui/frontend-slides): English slide workflow, viewport-safe HTML decks, PPTX, and publishing direction.
-- [huggingface/smolagents](https://github.com/huggingface/smolagents): a code-first agent workflow reference for the "read contract, run tools, write back results" collaboration pattern.
-- [AST Theory](docs/AST-theory.md) and [OPC Workflow](docs/OPC-workflow.md): Humanize PPT's own outline method, routing model, and execution boundaries.
-- [SPEC.md](SPEC.md) (engine technical specification), [v0.9 Release Notes](docs/versions/v0.9.0-style-gallery.md), [Style Gallery Spec](references/style-gallery-spec.md), [v0.8.0 Release Notes](docs/versions/v0.8.0-presentation-checkup.md), [v0.7.0 Release Notes](docs/versions/v0.7.0-render-qa-inspector.md), [v0.6.4 Release Notes](docs/versions/v0.6.4-guizang-production-brief-orchestrator.md), [Brief Specification](references/guizang-production-brief-orchestrator.md), [Presentation Checkup Failure Modes](references/qa-failure-modes.md): the brief-orchestrator + checkup contract, and why the inspector positioning exists.
+- [SPEC.md](SPEC.md), [v0.9 Release Notes](docs/versions/v0.9.0-style-gallery.md), [Style Gallery Spec](references/style-gallery-spec.md), [Presentation Checkup Failure Modes](references/qa-failure-modes.en.md), [Brief Specification](references/guizang-production-brief-orchestrator.md), [AST Theory](docs/AST-theory.md), [OPC Workflow](docs/OPC-workflow.md).
+- Downstream: [guizang-ppt-skill](https://github.com/op7418/guizang-ppt-skill), [frontend-slides](https://github.com/zarazhangrui/frontend-slides), [beautiful-html-templates](https://github.com/zarazhangrui/beautiful-html-templates), [baoyu-image-gen](https://github.com/JimLiu/baoyu-skills/tree/main/skills/baoyu-image-gen).
 
 ## License
 
@@ -415,7 +265,7 @@ MIT
 
 **Made by [LearnPrompt](https://github.com/LearnPrompt)** · From the same workshop
 
-[Luban · skill polishing](https://github.com/LearnPrompt/luban-skill) · [Paoding · blogger distilling](https://github.com/LearnPrompt/paoding-skill) · [Cailun · chat-to-page](https://github.com/LearnPrompt/cailun-skill) · [Afu · LLM todo](https://github.com/LearnPrompt/afu-llm-todo) · [AI News Radar · zero-API](https://github.com/LearnPrompt/ai-news-radar) · [Skillrush Town · ClawHub daily](https://github.com/LearnPrompt/skillrush-town) · [Irasutoya Illustrations](https://github.com/LearnPrompt/carl-irasutoya-illustrations) · [Humanize PPT](https://github.com/LearnPrompt/humanize-ppt) · [CC Harness](https://github.com/LearnPrompt/cc-harness-skills)
+[Luban · skill polishing](https://github.com/LearnPrompt/luban-skill) · [Paoding · blogger distilling](https://github.com/LearnPrompt/paoding-skill) · [Cailun · chat-to-page](https://github.com/LearnPrompt/cailun-skill) · [Afu · LLM todo](https://github.com/LearnPrompt/afu-llm-todo) · [AI News Radar](https://github.com/LearnPrompt/ai-news-radar) · [Skillrush Town](https://github.com/LearnPrompt/skillrush-town) · [Irasutoya Illustrations](https://github.com/LearnPrompt/carl-irasutoya-illustrations) · [Humanize PPT](https://github.com/LearnPrompt/humanize-ppt) · [CC Harness](https://github.com/LearnPrompt/cc-harness-skills)
 
 <sub>WeChat「卡尔的AI沃茨」 · [X @aiwarts](https://x.com/aiwarts) · [learnprompt.pro](https://www.learnprompt.pro)</sub>
 

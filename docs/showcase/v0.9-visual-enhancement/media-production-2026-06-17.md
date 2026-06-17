@@ -15,9 +15,9 @@
 | S05 diagram | `svg-html` | s05-diagram.svg | 确定性内联 SVG（指标：5 页 / 1 句 / 100% / 0） | ✅ 真文件 |
 | **S05 video** | `remotion-clip` | s05-video.mp4 | **真 Remotion 渲染**（8s/240 帧，指标 count-up 动画，无旁白） | ✅ 429 KB mp4 |
 | S05 image | `screenshot` | s05-image.png | 真实 UI 截图（渲染好的 deck S05 页，非合成） | ✅ 真截图 |
-| S01 image | `gpt-photo` | s01-image.png | 合成图，需 `OPENAI_API_KEY`（本环境未设）→ 留为可执行任务，不摆拍 | ⏸ 见 s01-image.GENERATE.md |
+| **S01 image** | `gpt-photo` | s01-image.png | **`baoyu-image-gen` 走本地 Codex CLI**（`--provider codex-cli`，用已登录 ChatGPT 订阅，**无需 OPENAI_API_KEY**），暗色 ink-night + amber/jade 流汇入 workflow hub，无文字 16:9 | ✅ 2.5MB 真图 |
 
-`contact-sheet.png` 是上面 8 个槽的拼图（最后一格 S01 待生成留空）。
+更新（2026-06-17 晚）：S01 的合成图改用 `baoyu-image-gen`（本地 Codex CLI，无需 key）真出，填掉了原先 blocked 的槽——8 个槽现在全部为真资产。两支 Remotion mp4 另转了循环 GIF（`s04-video.gif` / `s05-video.gif`）放进 README 让效果会动。
 
 ## 结论
 

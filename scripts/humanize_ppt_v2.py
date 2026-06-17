@@ -1796,12 +1796,18 @@ Each media slot above ships `asset_path` (where to write) and `prompt_hint`
 (what to generate). Produce the asset, then reference it from the rendered
 slide. Recommended generators (hot-pluggable — swap for any equivalent skill):
 
-- **image** (`gpt-photo`): call an image-generation skill — `imagegen` /
-  `imagen` / `nanobanana-ppt`, or the Codex image skill. Feed `prompt_hint`,
-  honor `aspect_ratio` and `max_size_kb`, write the file to `asset_path`.
+- **image** (`gpt-photo`): preferred — `baoyu-image-gen` driving the local
+  Codex CLI (`--provider codex-cli`, uses the logged-in Codex/ChatGPT
+  subscription, no `OPENAI_API_KEY` needed). Alternatives: `imagegen` /
+  `imagen` / `nanobanana-ppt` (these need their own API key). Feed
+  `prompt_hint`, honor `aspect_ratio` and `max_size_kb`, write to `asset_path`.
+  Use synthesized images for atmospheric / conceptual / hero visuals; keep
+  precise-text or data figures as deterministic SVG (image models garble
+  exact labels and numbers).
 - **image** (`screenshot`): capture the real UI / result; do not synthesize.
 - **diagram** (`svg-html` / `html-table`): render as deterministic inline SVG
-  or HTML from `prompt_hint`. No external call, no text overflow.
+  or HTML from `prompt_hint`. No external call, no text overflow. This is the
+  right choice for data, metrics, process steps, and any precise-label figure.
 - **video** (`remotion-clip`): call a Remotion skill — `remotion-video-toolkit`
   / `remotion-video-generator` / `remotion-video-production`. Build a
   deterministic loop of `duration_s` seconds (no narration), render to
@@ -1810,7 +1816,9 @@ slide. Recommended generators (hot-pluggable — swap for any equivalent skill):
 
 Rule: an asset slot with `asset_path` is an executable task. A slot without
 one is a label only — do not invent paths. Humanize decides *what* and
-*where*; this skill produces the file. Humanize never renders it.
+*where* (the per-page media plan); the downstream skill produces the file and
+renders the deck. Humanize orchestrates the presentation; it does not own the
+template that paints the final slide.
 """
 
 

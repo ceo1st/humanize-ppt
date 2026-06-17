@@ -10,14 +10,15 @@
 
 ## 1. Purpose & boundary
 
-Humanize PPT is a **render-QA inspector** for agent-made HTML presentations. It is built **for the presentation** (the spoken delivery, the audience state transfer) and is **broadly compatible** with any downstream skill that outputs an HTML PPT.
+Humanize PPT is a **presentation system** for agent-made HTML presentations — built **for the talk**, not just the template. Motivation: HTML-PPT template skills are great at concept display but inflate a simple idea into a dozen pretty pages, while a real ~90-minute talk is ~30 — the pretty shell outruns the content density. Humanize closes that gap and is **broadly compatible** with any downstream skill that outputs an HTML PPT.
 
-**It never renders.** Two core capabilities frame everything:
+Three core capabilities frame everything:
 
-1. **Outline director** — turns raw material (markdown / PPTX / research doc) into an AST outline and a per-page production brief the downstream skill renders natively.
-2. **Visual enhancement director** — decides, per page, whether the page needs an image (imagegen / imagen / nanobanana-ppt / Codex image), a deterministic inline SVG diagram, or a video (Remotion), and emits machine-actionable asset slots (`asset_path` + `prompt_hint`).
+1. **Outline director** — turns raw material (markdown / PPTX / research doc) into an AST outline (audience-state-transfer; every page turn moves the audience forward) and a per-page production brief.
+2. **Visual-enhancement director** — decides, per page, whether the page needs an image (preferred: `baoyu-image-gen` via the local Codex CLI, no API key; alt: imagegen / imagen / nanobanana-ppt), a deterministic inline SVG diagram, or a video (Remotion), and emits machine-actionable asset slots (`asset_path` + `prompt_hint`).
+3. **Presentation checkup + presenter hand-off** — auto-catches "look-only" pages after render (§7) and feeds presenter-mode speaker notes (§1 boundary below).
 
-The hard boundary, unchanged since v0.6.4:
+The downstream template skill renders the beautiful deck; Humanize orchestrates the talk. The hard boundary (the division of labor), unchanged since v0.6.4:
 
 - Humanize never opens a downstream renderer's template.
 - Humanize never injects sections into rendered HTML.
