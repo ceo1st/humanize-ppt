@@ -1,0 +1,145 @@
+# Humanize PPT — Technical Specification
+
+> Authoritative technical reference for the engine. `SKILL.md` is the
+> agent-facing trigger doc; `README.md` / `README.en.md` are the public intro.
+> This file specifies *what the engine does and guarantees*. Code-side source
+> of truth is `scripts/humanize_ppt_v2.py` (stable entrypoint:
+> `scripts/humanize_ppt.py`).
+>
+> Version: 0.9 · License: MIT · Author: LearnPrompt
+
+## 1. Purpose & boundary
+
+Humanize PPT is a **render-QA inspector** for agent-made HTML presentations. It is built **for the presentation** (the spoken delivery, the audience state transfer) and is **broadly compatible** with any downstream skill that outputs an HTML PPT.
+
+**It never renders.** Two core capabilities frame everything:
+
+1. **Outline director** — turns raw material (markdown / PPTX / research doc) into an AST outline and a per-page production brief the downstream skill renders natively.
+2. **Visual enhancement director** — decides, per page, whether the page needs an image (imagegen / imagen / nanobanana-ppt / Codex image), a deterministic inline SVG diagram, or a video (Remotion), and emits machine-actionable asset slots (`asset_path` + `prompt_hint`).
+
+The hard boundary, unchanged since v0.6.4:
+
+- Humanize never opens a downstream renderer's template.
+- Humanize never injects sections into rendered HTML.
+- Humanize never post-processes rendered HTML.
+- When a downstream skill updates, Humanize needs zero changes.
+
+Humanize decides **what** and **where**; the downstream skill produces the file. The only HTML Humanize itself writes is its own zero-dependency *working drafts* — `preview-outline.html` (audience state-transfer map) and `style_gallery.html` (cover picker). These are QA artifacts, not decks.
+
+## 2. AST — Audience-State-Transfer
+
+- **Audience**: who listens, what they know, what they resist.
+- **State**: audience state before/after the deck, plus the blocking tension.
+- **Transfer**: the slide-by-slide path from initial to desired state.
+
+Core sentence: *PPT is not an information container; it is an audience state-transfer artifact.* The role arc is `hook → context → tension → method → proof → takeaway` (`ROLE_ARC`).
+
+## 3. CLI surface
+
+```
+python3 scripts/humanize_ppt.py --out <dir> [mode flags] [inputs] [renderer/style]
+```
+
+### Inputs (one required for brief/outline/gallery modes)
+- `--source <path>` — markdown / PPTX raw material.
+- `--research-md <path>` — pre-existing research doc (e.g. hv-analysis output). Takes priority over `--source`; the brief writer does not re-parse raw material.
+- `--title <str>` — deck title (required for non-QA modes).
+
+### Modes (checked in this order in `main()`)
+1. `--qa-from <rendered.html>` → **presentation checkup** (§7). Mutually exclusive with `--source`.
+2. `--style-gallery` (v0.9) → **cover-style gate** (§6). Wins over `--preview-outline`.
+3. `--preview-outline` → write `outline-preview.md` and stop (review checkpoint).
+4. `--confirm-outline` → validate freshness, write `preview-confirmed.json`. Refuses if the outline is missing or the source mtime is newer. Mutually exclusive with `--preview-outline`.
+5. (no mode flag) → **brief mode**: write the full output contract (§5) and the renderer's production prompt.
+
+### Renderer / style selection
+- `--renderer {auto,guizang,beautiful-html-templates,html-ppt,frontend-slides}` (default `auto`; routing in `choose_routes`: PPTX→frontend-slides, zh→guizang, en→beautiful-html-templates, etc.).
+- `--guizang-style {A,B}` — A = flexible (5 themes), B = Swiss-locked (4 accents). A requires `--guizang-theme {ink-classic,indigo-porcelain,forest-ink,kraft-paper,dune}`; B requires `--guizang-accent {ikb,lemon-yellow,lemon-green,safety-orange}`.
+- `--selected-template <slug>`, `--occasion`, `--mood`, `--preview-count` — beautiful-html-templates selection hints.
+- `--gallery-count N` (v0.9) — style-gallery candidate count, minimum and default 4, capped at the candidates defined for the renderer.
+
+### Adapters & flags
+`--presenter-adapter`, `--export-adapter`, `--presenter`, `--no-render`, `--skip-install-check`, `--max-qa-iterations N` (default 3), `--beautiful-repo`, `--no-beautiful-auto-clone`.
+
+## 4. Data flow
+
+```
+raw material
+   │  read_source → detect_language → build_slide_plan (per-role + decide_media)
+   ▼
+slide_plan.json  ──(--style-gallery)──▶  ≥4 cover-only render commands + style_gallery.html picker  ──pick──┐
+   │                                                                                                         │
+   │  (--preview-outline) ──▶ outline-preview.md ──(--confirm-outline)──▶ preview-confirmed.json             │ reinjection_command
+   ▼                                                                                                         ▼
+brief mode: deck_brief / ast_outline / slide_plan / speaker_intent / asset_manifest / video_slots / style_brief
+   │  + <renderer>-production-prompt.md (per-page media block + media production guidance)
+   ▼
+downstream skill renders natively  ──▶  rendered HTML
+   │
+   ▼
+--qa-from <rendered.html>  ──▶  presentation checkup (≤3 rounds): qa_report.md / fix_prompt.md / qa_iteration.json
+```
+
+The brief is plain markdown + JSON, so any downstream that reads files can consume it. Verified recommendations: zh → `guizang-ppt-skill`; en → `frontend-slides` / `beautiful-html-templates`. Others are hot-pluggable.
+
+## 5. Output contract (brief mode)
+
+Every brief run writes, into `--out`:
+
+1. `deck_brief.md` — audience, goal, tension, success criteria.
+2. `ast_outline.md` — AST map and narrative arc.
+3. `slide_plan.json` — per-slide plan; schema `contracts/slide-plan.schema.json`.
+4. `speaker_intent.md` — per-slide speaker action (downstream's source for native speaker notes).
+5. `asset_manifest.md` — per-page material decisions.
+6. `video_slots.json` — optional Remotion / HyperFrames insertion plan.
+7. `style_brief.md` — visual principle for downstream production.
+8. `renderer_registry.json` — renderer capability snapshot for this run.
+9. `router_plan.json` — selected primary renderer + staged routes.
+10. `commands/*.md` — bounded instructions per downstream specialist.
+11. `<renderer>-production-prompt.md` — the brief the next agent consumes.
+12. `run_manifest.json`, `outputs/qa/qa_report.md`, `outputs/qa/fix_list.md`.
+
+## 6. Style gallery (v0.9) — the cover-style gate
+
+`--style-gallery` precedes the outline: it lets the human compare ≥4 covers side by side before committing to a style. Humanize emits the spec; the downstream skill renders the covers.
+
+For the resolved renderer it takes the first `N` of `STYLE_GALLERY_CANDIDATES[renderer]` (guizang spans Style A themes + a Style B Swiss accent so the four covers are visually distinct) and writes:
+
+- `commands/style-gallery/<id>.md` — a **cover-only** render command: render only S01 in that style → `outputs/style-gallery/<id>/cover.{html,png}`. Not a full deck.
+- `style_gallery.html` — zero-dependency single-file picker stitching the covers via relative-path `<iframe>`s, each with its label, description, and re-injection command. A not-yet-rendered cover shows the frame backdrop plus an always-visible caption — no faked thumbnail.
+- `style_gallery_plan.json` — per-candidate `id`, `label`, `description`, `cli`, `command_file`, `cover_html`, `cover_png`, `reinjection_command`.
+
+After picking, the human runs the candidate's `reinjection_command`, which carries `--renderer` + style args into the normal outline → brief flow. Spec: `references/style-gallery-spec.md`.
+
+**WebGL static-screenshot trap**: Style A covers use a WebGL hero canvas whose PNG can capture blank (canvas paints after load). Each Style A cover command warns to treat `cover.html` as truth, delay screenshots ≥1.5s, and treat a `cover.png` under 20KB as a failed capture. See §7 and `references/qa-failure-modes.md`.
+
+## 7. Presentation checkup (`--qa-from`)
+
+Per-page review of *rendered* HTML against the outline — grades the outline, not beauty. Capped at `--max-qa-iterations` (default 3); unresolved findings at the cap flip `qa_status` to `needs-human`.
+
+- `FAILURE_MODES` (in `humanize_ppt_v2.py`) is the code-side source of truth; the human-readable catalog is `references/qa-failure-modes.md` (+ English mirror `references/qa-failure-modes.en.md`), matched by id.
+- Each round: `run_checks` → findings `[{id, severity, pages, evidence}]` → `qa_report.md` (human) + `fix_prompt.md` (downstream-actionable) + `qa_iteration.json` (round state).
+- Failure classes the static scan can't catch (text overflow, badge occlusion, the WebGL static-screenshot trap) are listed but not packaged as `FAILURE_MODES` rules — catalog discipline: only rules that exist in code.
+
+## 8. Per-page media model
+
+`build_slide_plan` calls `decide_media(role, title, message, visible_content, slide_id)`, which applies `ROLE_MEDIA_POLICY` per role and produces, for each of `image` / `diagram` / `video`:
+
+- `needed` (bool), `kind` (e.g. `gpt-photo`, `screenshot`, `svg-html`, `remotion-clip`), and for `video` a `duration_s`.
+- v0.6.7 machine-actionable fields: `asset_path` (where to write), `prompt_hint` (what to generate), plus `aspect_ratio` / `max_size_kb` for images.
+
+A media slot **with** `asset_path` is an executable task; **without** one it is a label only. The three brief writers share `_format_per_page_media_block` (surfaces the slots) and `_media_production_guidance` (maps each `kind` to a concrete, hot-pluggable generator skill). Schema: `contracts/slide-plan.schema.json`.
+
+## 9. Renderer registry
+
+`registry/renderer_registry.json` snapshots renderer capability. `support_level` values, updated only on real results (宁空不摆拍):
+
+- `guizang` → `full`
+- `beautiful-html-templates` → `brief+qa-verified` (brief exit + a real checkup on a Neo-Grid deck, 2026-06-13)
+- `frontend-slides` → `brief-only` (brief exit verified; checkup not yet run on real output)
+
+## 10. Versioning & tests
+
+- `VERSION` in `humanize_ppt_v2.py`. Version history under `docs/versions/`.
+- Tests in `tests/` (pytest); run `python3 -m pytest -q`. v0.9 adds `tests/test_v090_style_gallery.py`.
+- The Luban discipline for this project: 验料 (confirm baseline green) → 访行 (read the existing flow) → 过尺 (run pytest) → 慢刨 (implement) → 回炉 (registry / SKILL.md / version / marketplace). Release actions (push / tag / marketplace bump) are gated on human review.
